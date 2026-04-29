@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		B991B5E02FA063A400883DCE /* PraticeSwiftUI2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = PraticeSwiftUI2.app; path = /Users/hainam/SwiftUI/PraticeSwiftUI2/build/Debug/PraticeSwiftUI2.app; sourceTree = "<absolute>"; };
+		B9B8C5792FA1DF1100028060 /* PraticeSwiftUI2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PraticeSwiftUI2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,6 +33,7 @@
 			isa = PBXGroup;
 			children = (
 				B991B5E22FA063A400883DCE /* PraticeSwiftUI2 */,
+				B9B8C5792FA1DF1100028060 /* PraticeSwiftUI2.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -58,7 +59,7 @@
 			packageProductDependencies = (
 			);
 			productName = PraticeSwiftUI2;
-			productReference = B991B5E02FA063A400883DCE /* PraticeSwiftUI2.app */;
+			productReference = B9B8C5792FA1DF1100028060 /* PraticeSwiftUI2.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
