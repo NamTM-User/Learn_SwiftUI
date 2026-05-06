@@ -72,19 +72,61 @@ struct Slider: View {
     }
 }
 struct FrameMiddle: View {
+    @Binding var imageA: UIImage?
+    @Binding var imageB: UIImage?
+
+    private let frameWidth: CGFloat = 362
+    private let frameHeight: CGFloat = 486
+    private let cornerRadius: CGFloat = 30
+
     var body: some View {
         ZStack(alignment: .top) {
             // BACKGROUND
-            RoundedRectangle(cornerRadius: 30)
+            RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color.black)
-                .frame(width: 362, height: 486)
+                .frame(width: frameWidth, height: frameHeight)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 30)
+                    RoundedRectangle(cornerRadius: cornerRadius)
                         .stroke(Color(hex: "8563FF"), lineWidth: 2)
                 )
-                
-            
-            // Title
+
+            // image A
+            if let imgA = imageA {
+                Image(uiImage: imgA)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: frameWidth / 2, height: frameHeight)
+                    .clipped()
+                    .clipShape(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: cornerRadius,
+                            bottomLeadingRadius: cornerRadius,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 0
+                        )
+                    )
+                    .frame(width: frameWidth, height: frameHeight, alignment: .leading)
+            }
+
+            // image B
+            if let imgB = imageB {
+                Image(uiImage: imgB)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: frameWidth / 2, height: frameHeight)
+                    .clipped()
+                    .clipShape(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: 0,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: cornerRadius,
+                            topTrailingRadius: cornerRadius
+                        )
+                    )
+                    .frame(width: frameWidth, height: frameHeight, alignment: .trailing)
+            }
+
+            // Title 
             VStack {
                 Text("COMPARE")
                     .font(.system(size: 12.63, weight: .semibold))
@@ -94,23 +136,24 @@ struct FrameMiddle: View {
                     .padding(.vertical, 9)
             }
             .background(
-                RoundedRectangle(cornerRadius: 30)
+                RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(Color.black)
-                    .stroke(Color(hex: "8563FF" ), lineWidth: 2)
+                    .stroke(Color(hex: "8563FF"), lineWidth: 2)
             )
-            .padding(.top , 10)
-            .padding(.horizontal , 96)
+            .padding(.top, 10)
+            .padding(.horizontal, 96)
             .zIndex(1)
-            
-            // slider
-           Slider().frame(width: 362, height: 486)
-            
+
+            // Slider
+            Slider().frame(width: frameWidth, height: frameHeight)
         }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .frame(width: frameWidth, height: frameHeight)
     }
 }
 
 
 #Preview {
-    FrameMiddle()
+    FrameMiddle(imageA: .constant(nil), imageB: .constant(nil))
 }
 
