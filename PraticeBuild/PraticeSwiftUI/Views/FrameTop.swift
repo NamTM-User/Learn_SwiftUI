@@ -9,41 +9,34 @@ import SwiftUI
 
 struct FrameTop: View {
     
+    // update
+    private var titleView: some View {
+        VStack(alignment: .leading) {
+            Text("Compare")
+            Text("Images")
+        }
+        .font(.system(size: 49, weight: .bold))
+    }
+
     var body: some View {
-        HStack (alignment: .top){
+        HStack(alignment: .top) {
             // TODO: use mask instead of foregroundstyle => DONE
-            
-            //Text
-            VStack(alignment: .leading){
-                
-                Text("Compare")
-                Text("Images")
-            }
-            .font(.system(size: 49, weight: .bold))
-            .foregroundColor(.red)
-            // Dùng overlay phủ lên view để không phá layout
-            .overlay {
-                
-                RadialGradient(
-                    colors: [
-                        Color(hex: "FFFFFF"),
-                        Color(hex: "5700E4")
-                    ],
-                    center: UnitPoint(x: 0.9, y: 0),
-                    startRadius: 0,
-                    endRadius: 180
-                )
-                .frame(width: 250, height: 150)
-                .mask {
-                    
-                    VStack(alignment: .leading){
-                        
-                        Text("Compare")
-                        Text("Images")
-                    }
-                    .font(.system(size: 49, weight: .bold))
+            titleView
+                .foregroundColor(.red)
+                // Dùng overlay phủ lên view để không phá layout
+                .overlay {
+                    RadialGradient(
+                        colors: [
+                            Color(hex: "FFFFFF"),
+                            Color(hex: "5700E4")
+                        ],
+                        center: UnitPoint(x: 0.9, y: 0),
+                        startRadius: 0,
+                        endRadius: 180
+                    )
+                    .frame(width: 250, height: 150)
+                    .mask { titleView }
                 }
-            }
 
             // Slice
             Spacer()
