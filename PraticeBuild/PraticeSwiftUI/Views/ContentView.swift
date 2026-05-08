@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var imageA: UIImage? = nil
-    @State private var imageB: UIImage? = nil
+    @State private var imageA = UIImage(named: "image 1")
+    @State private var imageB = UIImage(named: "image 2")
 
     var body: some View {
         ZStack {
@@ -34,7 +34,7 @@ struct ContentView: View {
                     .padding(.top, 20)
                 
                 FrameMiddle(imageA: $imageA, imageB: $imageB)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
                 
                 FrameBot(imageA: $imageA, imageB: $imageB)
                     .padding(.bottom, 20)

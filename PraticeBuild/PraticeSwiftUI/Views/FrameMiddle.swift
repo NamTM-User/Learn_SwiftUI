@@ -8,15 +8,18 @@ import SwiftUI
 
 struct Slider: View {
     // 1. Vi tri hien tai cua View luc Drag
-    @State private var offset: CGSize = CGSize(width: 0, height: 0)
+    @Binding var offset: CGSize
     // 2. Vi tri cuoi cung khi ket thuc Drag
     @State private var lastOffset: CGSize = CGSize(width: 0, height: 0)
     
     var body: some View {
         GeometryReader { geo in
+            let spacing: CGFloat = 5
+            
             // size parent
             let parentWidth: CGFloat = geo.size.width
             let parentHeight: CGFloat = geo.size.height
+
             
             //size slider
             let sliderWidth: CGFloat = 23
@@ -24,18 +27,18 @@ struct Slider: View {
             
             // Tinh toan gioi han bien parent
             let maxOffsetX = max(0, (parentWidth - sliderWidth) / 2)
-            let maxOffsetY = max(0, (parentHeight - sliderHeight) / 2 - 5)
+            let maxOffsetY = max(0, (parentHeight - sliderHeight) / 2 - spacing)
             
             // Tinh toan toa do cua slider so voi View parent
             let sliderX = (parentWidth / 2) + offset.width
             let sliderY = (parentHeight / 2) + offset.height
             
             // Chieu cao 2 thanh doc
-            let topHeight = max(0, sliderY - (sliderHeight / 2) - 5) 
-            let botHeight = max(0, parentHeight - sliderY - (sliderHeight / 2) - 5)
+            let topHeight = max(0, sliderY - (sliderHeight / 2) - spacing)
+            let botHeight = max(0, parentHeight - sliderY - (sliderHeight / 2) - spacing)
             
             
-            VStack(spacing: 5){
+            VStack(spacing: spacing){
                 //1.
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color(hex: "8563FF"))
@@ -67,13 +70,17 @@ struct Slider: View {
                         lastOffset = offset
                     }
             )
-            .animation(.interactiveSpring(response: 0.2, dampingFraction: 0.9), value: offset)
+//            .animation(.interactiveSpring(response: 0.2, dampingFraction: 0.9), value: offset)
         }
     }
 }
+
+
 struct FrameMiddle: View {
     @Binding var imageA: UIImage?
     @Binding var imageB: UIImage?
+    
+    @State private var sliderOffset: CGSize = CGSize(width: 0, height: 0)
 
     private let frameWidth: CGFloat = 362
     private let frameHeight: CGFloat = 486
@@ -82,51 +89,35 @@ struct FrameMiddle: View {
     var body: some View {
         ZStack(alignment: .top) {
             // BACKGROUND
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(Color.black)
-                .frame(width: frameWidth, height: frameHeight)
-                .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(Color(hex: "8563FF"), lineWidth: 2)
-                )
-
-            // image A
-            if let imgA = imageA {
-                Image(uiImage: imgA)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: frameWidth / 2, height: frameHeight)
-                    .clipped()
-                    .clipShape(
-                        UnevenRoundedRectangle(
-                            topLeadingRadius: cornerRadius,
-                            bottomLeadingRadius: cornerRadius,
-                            bottomTrailingRadius: 0,
-                            topTrailingRadius: 0
-                        )
-                    )
-                    .frame(width: frameWidth, height: frameHeight, alignment: .leading)
-            }
-
-            // image B
+            Color.black
+            
+            // image B full image khong cat
             if let imgB = imageB {
                 Image(uiImage: imgB)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: frameWidth / 2, height: frameHeight)
+                    .frame(width: frameWidth, height: frameHeight)
                     .clipped()
-                    .clipShape(
-                        UnevenRoundedRectangle(
-                            topLeadingRadius: 0,
-                            bottomLeadingRadius: 0,
-                            bottomTrailingRadius: cornerRadius,
-                            topTrailingRadius: cornerRadius
-                        )
+            }
+            
+            // image A dung mask de che
+            if let imgA = imageA {
+                
+                let maskWidth = (frameWidth / 2) + sliderOffset.width
+                
+                Image(uiImage: imgA)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: frameWidth, height: frameHeight)
+                    .mask(
+                        Rectangle()
+                            .frame(width: max(0, maskWidth) , height: frameHeight)
+                            .frame(width: frameWidth, alignment: .leading)
                     )
-                    .frame(width: frameWidth, height: frameHeight, alignment: .trailing)
             }
 
-            // Title 
+
+            // Title
             VStack {
                 Text("COMPARE")
                     .font(.system(size: 12.63, weight: .semibold))
@@ -144,11 +135,17 @@ struct FrameMiddle: View {
             .padding(.horizontal, 96)
             .zIndex(1)
 
-            // Slider
-            Slider().frame(width: frameWidth, height: frameHeight)
+            // ----------------------------Slider------------------------------------
+            Slider(offset: $sliderOffset).frame(width: frameWidth, height: frameHeight)
+            
+            
         }
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
         .frame(width: frameWidth, height: frameHeight)
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .stroke(Color(hex: "8563FF"), lineWidth: 2)
+        )
     }
 }
 
