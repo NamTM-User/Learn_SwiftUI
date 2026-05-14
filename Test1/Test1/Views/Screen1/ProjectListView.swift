@@ -1,0 +1,79 @@
+//
+//  ProjectListView.swift
+//  Test1
+//
+//  Created by Hai Nam on 13/5/26.
+//
+
+import SwiftUI
+
+struct ProjectListView: View {
+    @Environment(ProjectStore.self) private var store
+    
+    @State private var isShowAddAlert = false
+    @State private var newNameProjet = ""
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                
+                // 1. render list
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(store.projects) { project in
+                            ProjectSingle(project: project) {
+                                store.deleteProject(project: project)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+                
+                
+                // 2. add project
+                PopupAddProject() {
+                    isShowAddAlert = true
+                    
+                }
+                .alert("New Project", isPresented: $isShowAddAlert) {
+                    TextField("?" , text: $newNameProjet)
+                    
+                    Button {
+                        store.addProject(name: newNameProjet)
+                        // delete
+                        newNameProjet = ""
+                    } label: {
+                        Text("Add")
+                    }
+
+                    Button("Cancel", role: .cancel) {
+                        newNameProjet = ""
+                    }
+                    
+                }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 100)
+                    .background(Color(white: 0.95))
+                
+                
+            }
+            .navigationTitle("Projects")
+            .navigationDestination(for: Project.self) { selectProject in
+                // code implement after
+                Text("OK")
+            }
+            .task {
+                do {
+                    try await store.fetchProjects()
+                } catch {
+                    print("Loi~ fetch project")
+                }
+            }
+        }
+    }
+}
+
+
+#Preview {
+    ProjectListView().environment(ProjectStore())
+}
