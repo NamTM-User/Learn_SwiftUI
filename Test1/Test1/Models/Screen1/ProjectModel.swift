@@ -9,12 +9,9 @@ import Foundation
 import SwiftUI
 
 @Observable
-class ProjectStore {
+class ProjectModel {
     // state project list
     var projects: [Project] = []
-    
-    // state loading
-    var isLoading: Bool = false
     
     // api
     private let apiService: APIService = APIService()

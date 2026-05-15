@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProjectListView: View {
-    @Environment(ProjectStore.self) private var store
+    @Environment(ProjectModel.self) private var store
     
     @State private var isShowAddAlert = false
     @State private var newNameProjet = ""
@@ -75,5 +75,5 @@ struct ProjectListView: View {
 
 
 #Preview {
-    ProjectListView().environment(ProjectStore())
+    ProjectListView().environment(ProjectModel())
 }

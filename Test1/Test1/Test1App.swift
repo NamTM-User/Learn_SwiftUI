@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct Test1App: App {
+    @State private var store = ProjectModel()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ProjectListView()
+                .environment(store)
         }
     }
 }
