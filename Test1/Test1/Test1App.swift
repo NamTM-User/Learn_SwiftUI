@@ -15,6 +15,7 @@ struct Test1App: App {
         WindowGroup {
             ProjectListView()
                 .environment(store)
+                .preferredColorScheme(.light)
         }
     }
 }

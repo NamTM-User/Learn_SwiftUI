@@ -9,7 +9,18 @@ import SwiftUI
 
 struct ProjectDetailHeader: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        HStack {
+            Button {
+                // code back
+            } label: {
+                Text("Back")
+                    .foregroundStyle(.black)
+            }
+            
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
     }
 }
 

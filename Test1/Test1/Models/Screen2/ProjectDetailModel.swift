@@ -10,17 +10,17 @@ import Foundation
 struct ProjectDetail: Codable {
     let name: String
     let id: Int
-    let photos: [Photo]
+    var photos: [Photo]
 }
 
 struct Photo: Codable {
-    let url: String
-    let frame: Frame
+    var url: String
+    var frame: Frame
 }
 
 struct Frame: Codable {
-    let x: Double
-    let y: Double
-    let width: Double
-    let height: Double
+    var x: Double
+    var y: Double
+    var width: Double
+    var height: Double
 }

@@ -46,6 +46,7 @@ struct ProjectSingle: View {
                 HStack {
                     Text(project.name)
                         .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.black)
                     
                     Spacer()
                 }

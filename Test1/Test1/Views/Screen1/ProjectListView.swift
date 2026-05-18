@@ -15,48 +15,49 @@ struct ProjectListView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
-                
-                // 1. render list
-                ScrollView {
-                    LazyVStack(spacing: 16) {
-                        ForEach(store.projects) { project in
-                            ProjectSingle(project: project) {
-                                store.deleteProject(project: project)
+                VStack {
+                    
+                    // 1. render list
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            ForEach(store.projects) { project in
+                                ProjectSingle(project: project) {
+                                    store.deleteProject(project: project)
+                                }
                             }
                         }
+                        .padding(.vertical, 8)
                     }
-                    .padding(.vertical, 8)
-                }
-                
-                
-                // 2. add project
-                PopupAddProject() {
-                    isShowAddAlert = true
                     
-                }
-                .alert("New Project", isPresented: $isShowAddAlert) {
-                    TextField("?" , text: $newNameProjet)
                     
-                    Button {
-                        store.addProject(name: newNameProjet)
-                        // delete
-                        newNameProjet = ""
-                    } label: {
-                        Text("Add")
+                    // 2. add project
+                    PopupAddProject() {
+                        isShowAddAlert = true
+                        
                     }
+                    .alert("New Project", isPresented: $isShowAddAlert) {
+                        TextField("?" , text: $newNameProjet)
+                        
+                        Button {
+                            store.addProject(name: newNameProjet)
+                            // delete
+                            newNameProjet = ""
+                        } label: {
+                            Text("Add")
+                        }
 
-                    Button("Cancel", role: .cancel) {
-                        newNameProjet = ""
+                        Button("Cancel", role: .cancel) {
+                            newNameProjet = ""
+                        }
+                        
                     }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 100)
+                        .background(Color(white: 0.95))
+                    
                     
                 }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 100)
-                    .background(Color(white: 0.95))
-                
-                
-            }
+            
             .navigationTitle("Projects")
             .navigationDestination(for: Project.self) { selectProject in
                 // code implement after
@@ -69,6 +70,7 @@ struct ProjectListView: View {
                     print("Loi~ fetch project")
                 }
             }
+            .preferredColorScheme(.light)
         }
     }
 }

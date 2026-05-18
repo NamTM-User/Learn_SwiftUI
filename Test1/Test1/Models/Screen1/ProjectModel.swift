@@ -7,14 +7,16 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
-@Observable
+
+@Observable 
 class ProjectModel {
     // state project list
     var projects: [Project] = []
     
     // api
-    private let apiService: APIService = APIService()
+     private let apiService: APIService = APIService()
     
     //1. fetch project
     func fetchProjects() async throws  {

@@ -9,10 +9,20 @@ import SwiftUI
 
 struct ProjectDetailView: View {
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
+            
+            // top
             ProjectDetailHeader()
+            
+            // mid
             ProjectDetailMiddle()
-            ProjectDetailBottom()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(red: 0.9, green: 0.95, blue: 1.0))
+            
+            // bot
+            ProjectDetailBottom {
+                print("ok")
+            }
         }
     }
 }
