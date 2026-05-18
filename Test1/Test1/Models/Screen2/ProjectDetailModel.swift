@@ -13,9 +13,16 @@ struct ProjectDetail: Codable {
     var photos: [Photo]
 }
 
-struct Photo: Codable {
+struct Photo: Codable, Identifiable {
     var url: String
     var frame: Frame
+    
+    let id = UUID()
+    
+    enum CodingKeys: String , CodingKey {
+        case url
+        case frame
+    }
 }
 
 struct Frame: Codable {

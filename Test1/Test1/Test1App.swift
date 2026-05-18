@@ -9,13 +9,20 @@ import SwiftUI
 
 @main
 struct Test1App: App {
-    @State private var store = ProjectModel()
+    @State private var canvasModel = CanvasModel()
     
     var body: some Scene {
         WindowGroup {
-            ProjectListView()
-                .environment(store)
+            ProjectDetailMiddle()
+                .environment(canvasModel)
                 .preferredColorScheme(.light)
+                .task {
+                    do {
+                        try await canvasModel.fetchData(21)
+                    } catch {
+                        print("Lỗi tải API lúc test: \(error)")
+                    }
+                }
         }
     }
 }

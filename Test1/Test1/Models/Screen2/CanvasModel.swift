@@ -7,7 +7,6 @@
 
 import Foundation
 import Combine
-import Observation
 
 @Observable
 class CanvasModel {
@@ -53,7 +52,6 @@ class CanvasModel {
     }
     
     // 3. delete photo
-    
     func deletePhoto() {
         
          // check xem co img dang dc chon
@@ -98,10 +96,12 @@ class CanvasModel {
     }
     
     // 7. zoom
-    func zoom(index: Int, newW:Double, newH: Double) {
-        
+    func zoom(index: Int, newW: Double, newH: Double, newX: Double, newY: Double) {
         self.projectDetail?.photos[index].frame.width = newW
         self.projectDetail?.photos[index].frame.height = newH
+        // Phải cập nhật cả X và Y để giữ nguyên Tâm bức ảnh!
+        self.projectDetail?.photos[index].frame.x = newX
+        self.projectDetail?.photos[index].frame.y = newY
     }
     
     

@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct ProjectDetailView: View {
+    
+    @State private var canvasModel = CanvasModel()
+    
     var body: some View {
         VStack(spacing: 0) {
             
@@ -24,6 +27,7 @@ struct ProjectDetailView: View {
                 print("ok")
             }
         }
+        .environment(canvasModel)
     }
 }
 
