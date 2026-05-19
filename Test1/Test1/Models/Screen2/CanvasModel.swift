@@ -96,11 +96,10 @@ class CanvasModel {
     }
     
     // 7. zoom
-    func zoom(index: Int, newW: Double, newH: Double, newX: Double, newY: Double) {
+    func zoom(index: Int, newW: Double, newH: Double) {
         self.projectDetail?.photos[index].frame.width = newW
         self.projectDetail?.photos[index].frame.height = newH
-        self.projectDetail?.photos[index].frame.x = newX
-        self.projectDetail?.photos[index].frame.y = newY
+
     }
     
     

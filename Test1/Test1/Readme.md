@@ -57,20 +57,20 @@ Dự án đã được quy hoạch theo mô hình Feature-based (chia theo màn 
 - [x] Hiển thị danh sách ảnh từ API theo đúng toạ độ `x, y, width, height`.
 
 ### 3. Hệ thống Cử chỉ (Gestures) - **Quan trọng nhất**
-- [ ] **Zoom Canvas:** Sử dụng 2 ngón tay để thu phóng toàn bộ vùng làm việc.
+- [x] **Zoom Canvas:** Sử dụng 2 ngón tay để thu phóng và vuốt 1 ngón để di chuyển toàn bộ vùng làm việc 
 - [x] **Di chuyển ảnh:** Chạm và kéo 1 ngón tay để thay đổi vị trí ảnh.
 - [x] **Chọn ảnh:** Chạm vào ảnh để hiện viền xanh và nút xoá.
 - [x] **Resize & Rotate:** Dùng 2 ngón tay để xoay và thay đổi kích thước ảnh (phải giữ đúng tỷ lệ - Aspect Ratio).
 
 ### 4. Tính năng chỉnh sửa
 - [ ] **Add Photo:** Chọn ảnh từ thư viện máy và đưa vào tâm màn hình.
-- [ ] **Delete Photo:** Nhấn nút `(-)` để xoá ảnh khỏi Canvas.
+- [x] **Delete Photo:** Nhấn nút `(-)` để xoá ảnh khỏi Canvas.
 - [ ] **Save & Back:** Nhấn Back để lưu lại toàn bộ vị trí ảnh và quay về Screen 1.
 
 ---
 
 ## 📝 Ghi chú Kỹ thuật
 - **State Management:** Sử dụng macro `@Observable` (ProjectModel, CanvasModel) để quản lý logic và dữ liệu, truyền qua `@Environment`.
-- **Target OS:** iOS 17.0+ (Sử dụng `NavigationStack` và các API hiện đại của iOS 17).
+- **Target OS:** iOS 17.0+ 
 - **Networking:** Hàm `postAPI(projectId:)` trong `APIService` xử lý việc lấy dữ liệu chi tiết.
-- **Persistence:** Cần chú ý việc đồng bộ dữ liệu giữa Client và Server khi thực hiện các hành động chỉnh sửa.
+

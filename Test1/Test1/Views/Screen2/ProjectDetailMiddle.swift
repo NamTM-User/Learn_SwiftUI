@@ -10,41 +10,86 @@ import SwiftUI
 struct ProjectDetailMiddle: View {
     @Environment(CanvasModel.self) private var canvasModel
     
+    // State cho Zoom & Move toàn bộ Canvas
+    @State private var canvasScale: CGFloat = 1.0
+    @State private var lastCanvasScale: CGFloat = 1.0
+    @State private var canvasOffset: CGSize = .zero
+    @State private var lastCanvasOffset: CGSize = .zero
+    
     var body: some View {
+        // container
         ZStack {
-            // unwrap
-            if let detail = canvasModel.projectDetail {
-                ForEach(detail.photos) { photo in
-                    // index của image đang chọn
-                    if let index = detail.photos.firstIndex(where: { $0.id == photo.id }) {
-                        
-                        let isSelected = (canvasModel.selectedPhotoIndex == index)
-                        
-                        PhotoItemView(
-                            photo: photo,
-                            isSelect: isSelected,
-                            onTap: {
-                                // Chỉ cập nhật khi chưa chọn
-                                if canvasModel.selectedPhotoIndex != index {
-                                    canvasModel.selectedPhotoIndex = index
+            // 1. Lớp nền ảo để hứng Gesture (khi tap hoặc vuốt ra ngoài ảnh)
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    // Bỏ chọn ảnh nếu bấm ra ngoài
+                    canvasModel.selectedPhotoIndex = nil
+                }
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            canvasOffset = CGSize(
+                                width: lastCanvasOffset.width + value.translation.width,
+                                height: lastCanvasOffset.height + value.translation.height
+                            )
+                        }
+                        .onEnded { _ in
+                            lastCanvasOffset = canvasOffset
+                        }
+                )
+                .simultaneousGesture(
+                    MagnifyGesture()
+                        .onChanged { value in
+                            canvasScale = lastCanvasScale * value.magnification
+                        }
+                        .onEnded { _ in
+                            lastCanvasScale = canvasScale
+                        }
+                )
+            
+            // 2. Vùng chứa các bức ảnh
+            ZStack {
+                // unwrap
+                if let detail = canvasModel.projectDetail {
+                    ForEach(detail.photos) { photo in
+                        // index của image đang chọn
+                        if let index = detail.photos.firstIndex(where: { $0.id == photo.id }) {
+                            
+                            let isSelected = (canvasModel.selectedPhotoIndex == index)
+                            
+                            PhotoItemView(
+                                photo: photo,
+                                isSelect: isSelected,
+                                onTap: {
+                                    // Chỉ cập nhật khi chưa chọn
+                                    if canvasModel.selectedPhotoIndex != index {
+                                        canvasModel.selectedPhotoIndex = index
+                                    }
+                                },
+                                onMove: { newX, newY in
+                                    canvasModel.movePhoto(index: index, newX: newX, newY: newY)
+                                },
+                                onZoom: { newW, newH in
+                                    canvasModel.zoom(index: index, newW: newW, newH: newH)
+                                },
+                                onRotate: { angle in
+                                    canvasModel.rotatePhoto(index: index, angle: angle)
+                                },
+                                onDelete: {
+                                    canvasModel.deletePhoto()
                                 }
-                            },
-                            onMove: { newX, newY in
-                                canvasModel.movePhoto(index: index, newX: newX, newY: newY)
-                            },
-                            onZoom: { newW, newH, X, Y in
-                                canvasModel.zoom(index: index, newW: newW, newH: newH, newX: X, newY: Y)
-                            },
-                            onRotate: { angle in
-                                canvasModel.rotatePhoto(index: index, angle: angle)
-                            }
-                        )
-                        .zIndex(isSelected ? 1 : 0)
+                            )
+                            .zIndex(isSelected ? 1 : 0)
+                        }
                     }
                 }
             }
+            .coordinateSpace(name: "Canvas") // Name tự đặt tên theo ngữ cảnh 
+            .scaleEffect(canvasScale)
+            .offset(canvasOffset)
+    //        .clipped()
         }
-//        .clipped()
     }
 }
 
@@ -56,8 +101,9 @@ struct PhotoItemView: View {
     // gesture
     let onTap: () -> Void
     let onMove: (Double, Double) -> Void
-    let onZoom: (Double, Double, Double, Double) -> Void
+    let onZoom: (Double, Double) -> Void
     let onRotate: (Double) -> Void
+    let onDelete: () -> Void
     
     // State
     @State private var dragOffset: CGSize = .zero
@@ -85,29 +131,48 @@ struct PhotoItemView: View {
                     ProgressView()
                 }
             }
+//            Image(.AA)
+//                .resizable()
+//                .scaledToFit()
             .frame(width: photo.frame.width , height: photo.frame.height)
             .clipped()
-            .overlay{
+            .overlay {
                 if isSelect {
                     ZStack {
+                        // 1. Viền xanh
                         Rectangle()
                             .stroke(Color.blue, lineWidth: 2)
-//                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-//                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-//                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-//                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                        
+                        // 2. dot
+                        dot.offset(x: -6, y: -6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        dot.offset(x: 6, y: -6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        dot.offset(x: -6, y: 6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                        dot.offset(x: 6, y: 6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                        
+                        // 3. button delete
+                        Button(action: {
+                            onDelete()
+                        }) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color(red: 1.0, green: 0.35, blue: 0.35))
+                                    .frame(width: 32, height: 32)
+                                
+                                Rectangle()
+                                    .fill(Color.white)
+                                    .frame(width: 14, height: 3)
+                                    .cornerRadius(1.5)
+                            }
                         }
+                        .offset(y: -40)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     }
-                } // làm sau
+                }
+            }
             }
         //
             .scaleEffect(scaleImage)
             .rotationEffect(Angle(degrees: photo.rotation ?? 0) + rotateImage)
-            .position(
-                x: photo.frame.x + dragOffset.width,
-                y: photo.frame.y + dragOffset.height
-            )
-            
             // ================================= gesture ===============================
             // 1. tap
             .onTapGesture {
@@ -115,48 +180,64 @@ struct PhotoItemView: View {
             }
             // 2. move
             .gesture(
-                DragGesture()
+                DragGesture(coordinateSpace: .named("Canvas"))
                     .onChanged { value in
-                        if !isSelect {
-                            onTap()
+                        // chỉ chạy khi ảnh được chọn
+                        guard isSelect else {
+                            return
                         }
                         
                         dragOffset = value.translation
                     }
                     .onEnded { value in
-                        // Lấy vị trí x,y cũ cộng với tổng quãng đường ngón tay vừa vuốt
+                        guard isSelect else {
+                            return
+                        }
+                        
                         let newX = photo.frame.x + value.translation.width
                         let newY = photo.frame.y + value.translation.height
-                        onMove(newX , newY)
+                        
                         //reset
                         dragOffset = .zero
+                        onMove(newX , newY)
                     }
             )
             // 3. zoom
             .simultaneousGesture(
                 MagnifyGesture()
                     .onChanged { value in
+                        // chỉ chạy khi ảnh được chọn
+                        guard isSelect else {
+                            return
+                        }
                         scaleImage = value.magnification
                     }
                     .onEnded { value in
+                        guard isSelect else {
+                            return
+                        }
                         // 1. tinh toan lai chieu widght va height new
                         let newW = photo.frame.width * value.magnification
                         let newH = photo.frame.height * value.magnification
-                        // 2
-                        let X = photo.frame.x
-                        let Y = photo.frame.y
                         
-                        onZoom(newW , newH , X , Y)
                         scaleImage = 1
+                        onZoom(newW , newH)
                     }
             )
             // 4. rotate
             .simultaneousGesture(
                 RotateGesture()
                     .onChanged { value in
+                        // chỉ chạy khi ảnh được chọn
+                        guard isSelect else {
+                            return
+                        }
                         rotateImage = value.rotation
                     }
                     .onEnded { value in
+                        guard isSelect else {
+                            return
+                        }
                         let curRotation = photo.rotation ?? 0
                         let newRotation = curRotation + value.rotation.degrees
                         
@@ -165,6 +246,10 @@ struct PhotoItemView: View {
                         rotateImage = .zero
                         
                     }
+            )
+            .position(
+                x: photo.frame.x + dragOffset.width,
+                y: photo.frame.y + dragOffset.height
             )
     }
 }
