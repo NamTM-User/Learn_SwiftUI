@@ -18,6 +18,7 @@ struct Photo: Codable, Identifiable {
     var frame: Frame
     
     let id = UUID()
+    var rotation: Double? 
     
     enum CodingKeys: String , CodingKey {
         case url

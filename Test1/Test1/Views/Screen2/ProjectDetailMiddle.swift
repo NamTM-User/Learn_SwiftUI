@@ -31,6 +31,12 @@ struct ProjectDetailMiddle: View {
                             },
                             onMove: { newX, newY in
                                 canvasModel.movePhoto(index: index, newX: newX, newY: newY)
+                            },
+                            onZoom: { newW, newH, X, Y in
+                                canvasModel.zoom(index: index, newW: newW, newH: newH, newX: X, newY: Y)
+                            },
+                            onRotate: { angle in
+                                canvasModel.rotatePhoto(index: index, angle: angle)
                             }
                         )
                         .zIndex(isSelected ? 1 : 0)
@@ -50,9 +56,13 @@ struct PhotoItemView: View {
     // gesture
     let onTap: () -> Void
     let onMove: (Double, Double) -> Void
+    let onZoom: (Double, Double, Double, Double) -> Void
+    let onRotate: (Double) -> Void
     
     // State
     @State private var dragOffset: CGSize = .zero
+    @State private var scaleImage: CGFloat = 1.0
+    @State private var rotateImage: Angle = .zero
     
     // view dot
     private var dot: some View {
@@ -63,6 +73,7 @@ struct PhotoItemView: View {
     }
     
     var body: some View {
+        //
         ZStack {
             // load image
             AsyncImage(url: URL(string: photo.url)) { phase in
@@ -81,14 +92,17 @@ struct PhotoItemView: View {
                     ZStack {
                         Rectangle()
                             .stroke(Color.blue, lineWidth: 2)
-                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+//                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+//                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+//                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+//                        dot.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                         }
                     }
                 } // làm sau
             }
+        //
+            .scaleEffect(scaleImage)
+            .rotationEffect(Angle(degrees: photo.rotation ?? 0) + rotateImage)
             .position(
                 x: photo.frame.x + dragOffset.width,
                 y: photo.frame.y + dragOffset.height
@@ -116,6 +130,40 @@ struct PhotoItemView: View {
                         onMove(newX , newY)
                         //reset
                         dragOffset = .zero
+                    }
+            )
+            // 3. zoom
+            .simultaneousGesture(
+                MagnifyGesture()
+                    .onChanged { value in
+                        scaleImage = value.magnification
+                    }
+                    .onEnded { value in
+                        // 1. tinh toan lai chieu widght va height new
+                        let newW = photo.frame.width * value.magnification
+                        let newH = photo.frame.height * value.magnification
+                        // 2
+                        let X = photo.frame.x
+                        let Y = photo.frame.y
+                        
+                        onZoom(newW , newH , X , Y)
+                        scaleImage = 1
+                    }
+            )
+            // 4. rotate
+            .simultaneousGesture(
+                RotateGesture()
+                    .onChanged { value in
+                        rotateImage = value.rotation
+                    }
+                    .onEnded { value in
+                        let curRotation = photo.rotation ?? 0
+                        let newRotation = curRotation + value.rotation.degrees
+                        
+                        onRotate(newRotation)
+                        // reset
+                        rotateImage = .zero
+                        
                     }
             )
     }

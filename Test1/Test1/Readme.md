@@ -60,7 +60,7 @@ Dự án đã được quy hoạch theo mô hình Feature-based (chia theo màn 
 - [ ] **Zoom Canvas:** Sử dụng 2 ngón tay để thu phóng toàn bộ vùng làm việc.
 - [x] **Di chuyển ảnh:** Chạm và kéo 1 ngón tay để thay đổi vị trí ảnh.
 - [x] **Chọn ảnh:** Chạm vào ảnh để hiện viền xanh và nút xoá.
-- [ ] **Resize & Rotate:** Dùng 2 ngón tay để xoay và thay đổi kích thước ảnh (phải giữ đúng tỷ lệ - Aspect Ratio).
+- [x] **Resize & Rotate:** Dùng 2 ngón tay để xoay và thay đổi kích thước ảnh (phải giữ đúng tỷ lệ - Aspect Ratio).
 
 ### 4. Tính năng chỉnh sửa
 - [ ] **Add Photo:** Chọn ảnh từ thư viện máy và đưa vào tâm màn hình.
