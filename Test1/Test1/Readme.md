@@ -1,6 +1,6 @@
 # 🚀 Project: SwiftUI Photo Editor
 
-Ứng dụng quản lý dự án và chỉnh sửa ảnh trên Canvas, được xây dựng bằng SwiftUI hỗ trợ **iOS 16+** sử dụng `ObservableObject`, `@Published` và hệ thống `EnvironmentObject`.
+Ứng dụng quản lý dự án và chỉnh sửa ảnh trên Canvas, được xây dựng bằng SwiftUI hỗ trợ **iOS 17+** sử dụng macro `@Observable` và hệ thống `@Environment`.
 
 ## 📂 Cấu trúc Dự án hiện tại
 Dự án đã được quy hoạch theo mô hình Feature-based (chia theo màn hình):
@@ -15,7 +15,7 @@ Dự án đã được quy hoạch theo mô hình Feature-based (chia theo màn 
 ## ✅ Những thứ ĐÃ CÓ (Screen 1 - Project List)
 1. **Dữ liệu (Data):**
    - Đã kết nối thành công API GET `xproject`.
-   - Sử dụng `ObservableObject ProjectModel` để quản lý danh sách dự án toàn cục.
+   - Sử dụng macro `@Observable` trong `ProjectModel` để quản lý danh sách dự án toàn cục.
 2. **Giao diện (UI):**
    - Danh sách dự án hiển thị đẹp mắt với bo góc và màu sắc hiện đại.
    - Nút **"Add Project"** cố định ở đáy màn hình.
@@ -54,12 +54,12 @@ Dự án đã được quy hoạch theo mô hình Feature-based (chia theo màn 
     - `ProjectDetailHeader`: Nút back.
     - `ProjectDetailMiddle`: Vùng làm việc Canvas.
     - `ProjectDetailBottom`: Nút Add Photo.
-- [ ] Hiển thị danh sách ảnh từ API theo đúng toạ độ `x, y, width, height`.
+- [x] Hiển thị danh sách ảnh từ API theo đúng toạ độ `x, y, width, height`.
 
 ### 3. Hệ thống Cử chỉ (Gestures) - **Quan trọng nhất**
 - [ ] **Zoom Canvas:** Sử dụng 2 ngón tay để thu phóng toàn bộ vùng làm việc.
-- [ ] **Di chuyển ảnh:** Chạm và kéo 1 ngón tay để thay đổi vị trí ảnh.
-- [ ] **Chọn ảnh:** Chạm vào ảnh để hiện viền xanh và nút xoá.
+- [x] **Di chuyển ảnh:** Chạm và kéo 1 ngón tay để thay đổi vị trí ảnh.
+- [x] **Chọn ảnh:** Chạm vào ảnh để hiện viền xanh và nút xoá.
 - [ ] **Resize & Rotate:** Dùng 2 ngón tay để xoay và thay đổi kích thước ảnh (phải giữ đúng tỷ lệ - Aspect Ratio).
 
 ### 4. Tính năng chỉnh sửa
@@ -70,7 +70,7 @@ Dự án đã được quy hoạch theo mô hình Feature-based (chia theo màn 
 ---
 
 ## 📝 Ghi chú Kỹ thuật
-- **State Management:** Sử dụng `ObservableObject` và `@Published` (ProjectModel, CanvasModel) để quản lý logic và dữ liệu, truyền qua `EnvironmentObject`.
-- **Target OS:** iOS 16.0+ (Sử dụng `NavigationStack` và các API hiện đại của iOS 16).
+- **State Management:** Sử dụng macro `@Observable` (ProjectModel, CanvasModel) để quản lý logic và dữ liệu, truyền qua `@Environment`.
+- **Target OS:** iOS 17.0+ (Sử dụng `NavigationStack` và các API hiện đại của iOS 17).
 - **Networking:** Hàm `postAPI(projectId:)` trong `APIService` xử lý việc lấy dữ liệu chi tiết.
 - **Persistence:** Cần chú ý việc đồng bộ dữ liệu giữa Client và Server khi thực hiện các hành động chỉnh sửa.
