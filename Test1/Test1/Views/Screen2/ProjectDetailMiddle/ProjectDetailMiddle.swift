@@ -11,9 +11,7 @@ struct ProjectDetailMiddle: View {
     @Environment(CanvasModel.self) private var canvasModel
     
     // State cho Zoom & Move toàn bộ Canvas
-    @State private var canvasScale: CGFloat = 1.0
     @State private var lastCanvasScale: CGFloat = 1.0
-    @State private var canvasOffset: CGSize = .zero
     @State private var lastCanvasOffset: CGSize = .zero
     
     var body: some View {
@@ -29,26 +27,26 @@ struct ProjectDetailMiddle: View {
                 .gesture(
                     DragGesture()
                         .onChanged { value in
-                            canvasOffset = CGSize(
+                            canvasModel.canvasOffset = CGSize(
                                 width: lastCanvasOffset.width + value.translation.width,
                                 height: lastCanvasOffset.height + value.translation.height
                             )
                         }
                         .onEnded { _ in
-                            lastCanvasOffset = canvasOffset
+                            lastCanvasOffset = canvasModel.canvasOffset
                         }
                 )
                 .simultaneousGesture(
                     MagnifyGesture()
                         .onChanged { value in
-                            canvasScale = lastCanvasScale * value.magnification
+                            canvasModel.canvasScale = lastCanvasScale * value.magnification
                         }
                         .onEnded { _ in
-                            lastCanvasScale = canvasScale
+                            lastCanvasScale = canvasModel.canvasScale
                         }
                 )
             
-            // 2. Vùng chứa các bức ảnh
+            // 2. Vùng chứa image
             ZStack {
                 // unwrap
                 if let detail = canvasModel.projectDetail {
@@ -85,9 +83,10 @@ struct ProjectDetailMiddle: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .coordinateSpace(name: "Canvas") // Name tự đặt tên theo ngữ cảnh
-            .scaleEffect(canvasScale)
-            .offset(canvasOffset)
+            .scaleEffect(canvasModel.canvasScale)
+            .offset(canvasModel.canvasOffset)
     //        .clipped()
         }
     }

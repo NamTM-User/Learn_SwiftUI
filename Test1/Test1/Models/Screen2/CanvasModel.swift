@@ -19,6 +19,10 @@ class CanvasModel {
     // Cache lưu trữ ảnh local tải từ máy
     var localImages: [String: UIImage] = [:]
     
+    // State cho Zoom & Move toàn bộ Canvas
+    var canvasScale: CGFloat = 1.0
+    var canvasOffset: CGSize = .zero
+    
     // api
     private let apiService = APIService()
     
@@ -53,9 +57,17 @@ class CanvasModel {
     // 2. add photo
     func addPhoto(url: String, imgW: CGFloat, imgH: CGFloat , canvasSize: CGSize) {
         
-        // image render center
-        let x = (Double(canvasSize.width) - imgW) / 2
-        let y = (Double(canvasSize.height) - imgH) / 2
+        // center canvas
+        let screenCenterX = Double(canvasSize.width) / 2
+        let screenCenterY = Double(canvasSize.height) / 2
+        
+        // Map tâm màn hình về tọa độ của Canvas (khử offset và scale)
+        let canvasCenterX = screenCenterX - Double(self.canvasOffset.width / self.canvasScale)
+        let canvasCenterY = screenCenterY - Double(self.canvasOffset.height / self.canvasScale)
+        
+        // Tọa độ top-left của ảnh
+        let x = canvasCenterX - (Double(imgW) / 2)
+        let y = canvasCenterY - (Double(imgH) / 2)
         
         let newPhoto = Photo(
             url: url,
@@ -116,8 +128,17 @@ class CanvasModel {
     
     // 7. zoom
     func zoom(index: Int, newW: Double, newH: Double) {
+        if let oldW = self.projectDetail?.photos[index].frame.width, let oldH = self.projectDetail?.photos[index].frame.height {
+            
+            // move top-left x, y để giữ nguyên tâm image
+            let dx = (oldW - newW) / 2
+            let dy = (oldH - newH) / 2
+            
+            self.projectDetail?.photos[index].frame.x += dx
+            self.projectDetail?.photos[index].frame.y += dy
+        }
+        
         self.projectDetail?.photos[index].frame.width = newW
         self.projectDetail?.photos[index].frame.height = newH
-
     }
 }

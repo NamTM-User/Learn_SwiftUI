@@ -10,14 +10,16 @@ import SwiftUI
 struct ProjectDetailHeader: View {
     var body: some View {
         HStack {
+            Spacer()
+            
             Button {
                 // code back
             } label: {
-                Text("Back")
+                
+                Text("Save")
                     .foregroundStyle(.black)
             }
             
-            Spacer()
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)

@@ -36,6 +36,7 @@ struct ProjectDetailView: View {
                     }
                 )
                 .clipped()
+                
             
             // bot
             ProjectDetailBottom { image in

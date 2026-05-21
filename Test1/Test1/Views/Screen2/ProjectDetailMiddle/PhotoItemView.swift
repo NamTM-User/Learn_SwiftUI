@@ -26,12 +26,16 @@ struct PhotoItemView: View {
     @State private var scaleImage: CGFloat = 1.0
     @State private var rotateImage: Angle = .zero
     
+    private var dynamicScale: CGFloat {
+        let scale = (photo.frame.width * scaleImage) / 350.0
+        return max(0.6, scale) 
+    }
+    
     // view dot
     private var dot: some View {
         Circle()
             .fill(Color.blue)
-            .frame(width: 12 ,height: 12)
-            .shadow(radius: 3)
+            .frame(width: 12 * dynamicScale, height: 12 * dynamicScale)
     }
     
     var body: some View {
@@ -52,48 +56,47 @@ struct PhotoItemView: View {
                             if let dowloadImage = try? await canvasModel.loadImage(urlString: photo.url) {
                                 self.loaderImage = dowloadImage
                             }
-                                
+                            
                         }
                 }
             }
-            .frame(width: photo.frame.width , height: photo.frame.height)
+            .frame(width: photo.frame.width * scaleImage, height: photo.frame.height * scaleImage)
             .clipped()
             .overlay {
                 if isSelect {
                     ZStack {
                         // 1. Viền xanh
                         Rectangle()
-                            .stroke(Color.blue, lineWidth: 2)
+                            .stroke(Color.blue, lineWidth: 2 * dynamicScale)
                         
                         // 2. dot
-                        dot.offset(x: -6, y: -6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        dot.offset(x: 6, y: -6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        dot.offset(x: -6, y: 6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                        dot.offset(x: 6, y: 6).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                        let dOffset = 6 * dynamicScale
+                        dot.offset(x: -dOffset, y: -dOffset).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        dot.offset(x: dOffset, y: -dOffset).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        dot.offset(x: -dOffset, y: dOffset).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                        dot.offset(x: dOffset, y: dOffset).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                         
-                        // 3. button delete
                         Button(action: {
                             onDelete()
                         }) {
                             ZStack {
                                 Circle()
                                     .fill(Color(red: 1.0, green: 0.35, blue: 0.35))
-                                    .frame(width: 32, height: 32)
+                                    .frame(width: 32 * dynamicScale, height: 32 * dynamicScale)
                                 
                                 Rectangle()
                                     .fill(Color.white)
-                                    .frame(width: 14, height: 3)
-                                    .cornerRadius(1.5)
+                                    .frame(width: 14 * dynamicScale, height: 3 * dynamicScale)
+                                    .cornerRadius(1.5 * dynamicScale)
                             }
                         }
-                        .offset(y: -40)
+                        .frame(width: 32 * dynamicScale, height: 32 * dynamicScale)
+                        .offset(y: -40 * dynamicScale)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     }
                 }
             }
-            }
-        //
-            .scaleEffect(scaleImage)
+            //
             .rotationEffect(Angle(degrees: photo.rotation ?? 0) + rotateImage)
             // ================================= gesture ===============================
             // 1. tap
@@ -170,8 +173,9 @@ struct PhotoItemView: View {
                     }
             )
             .position(
-                x: photo.frame.x + dragOffset.width,
-                y: photo.frame.y + dragOffset.height
+                x: photo.frame.x + (photo.frame.width / 2) + dragOffset.width,
+                y: photo.frame.y + (photo.frame.height / 2) + dragOffset.height
             )
+        }
     }
 }

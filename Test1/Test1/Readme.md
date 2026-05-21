@@ -63,7 +63,7 @@ Dự án đã được quy hoạch theo mô hình Feature-based (chia theo màn 
 - [x] **Resize & Rotate:** Dùng 2 ngón tay để xoay và thay đổi kích thước ảnh (phải giữ đúng tỷ lệ - Aspect Ratio).
 
 ### 4. Tính năng chỉnh sửa
-- [ ] **Add Photo:** Chọn ảnh từ thư viện máy và đưa vào tâm màn hình.
+- [x] **Add Photo:** Chọn ảnh từ thư viện máy và đưa vào tâm màn hình.
 - [x] **Delete Photo:** Nhấn nút `(-)` để xoá ảnh khỏi Canvas.
 - [ ] **Save & Back:** Nhấn Back để lưu lại toàn bộ vị trí ảnh và quay về Screen 1.
 
