@@ -60,8 +60,7 @@ struct ProjectListView: View {
             
             .navigationTitle("Projects")
             .navigationDestination(for: Project.self) { selectProject in
-                // code implement after
-                Text("OK")
+                ProjectDetailView(projectID: selectProject.id)
             }
             .task {
                 do {

@@ -9,7 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct ProjectDetailBottom: View {
-    var onAddPhoto: () -> Void
+    var onAddPhoto: (Data) -> Void
     
     @State private var selectedItem: PhotosPickerItem?
     
@@ -21,18 +21,17 @@ struct ProjectDetailBottom: View {
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 55)
+                    .frame(height: 60)
                     .background(Color.blue)
                     .cornerRadius(15)
             }
             .padding(.horizontal, 25)
-            .padding(.bottom, 20)
+            .padding(.bottom, 40)
             //change
             .onChange(of: selectedItem) { _, newItem in
                 Task {
                     if let imgData = try await newItem?.loadTransferable(type: Data.self) {
-                        onAddPhoto()
-                        
+                        onAddPhoto(imgData)
                         selectedItem = nil
                     }
                 }
@@ -40,7 +39,7 @@ struct ProjectDetailBottom: View {
             
             
         }
-        .frame(height: 200)
+        .frame(height: 150)
         .background(Color(white: 0.98))
     }
 }

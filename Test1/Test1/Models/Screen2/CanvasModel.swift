@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import SwiftUI
 
 @Observable
 class CanvasModel {
@@ -15,8 +16,26 @@ class CanvasModel {
     // state selected
     var selectedPhotoIndex: Int?
     
+    // Cache lưu trữ ảnh local tải từ máy
+    var localImages: [String: UIImage] = [:]
+    
     // api
     private let apiService = APIService()
+    
+    // load image
+    func loadImage(urlString: String) async throws -> Image {
+        guard let url = URL(string: urlString) else {
+            throw URLError(.badURL)
+        }
+
+        let (data, _) = try await URLSession.shared.data(from: url)
+
+        guard let image = UIImage(data: data) else {
+            throw URLError(.cannotDecodeContentData)
+        }
+
+        return Image(uiImage: image)
+    }
     
     // 1. fetch
     func fetchData(_ id: Int) async throws {
@@ -101,6 +120,4 @@ class CanvasModel {
         self.projectDetail?.photos[index].frame.height = newH
 
     }
-    
-    
 }
