@@ -42,6 +42,9 @@ struct ProjectDetailView: View {
             ProjectDetailBottom { image in
                 if let img = UIImage(data: image){
                     let randomURL = UUID().uuidString
+                    
+                    LocalFileManager.saveImage(image: img, imageName: randomURL)
+                    
                     canvasModel.localImages[randomURL] = img
                     
                     let originalWidth = img.size.width

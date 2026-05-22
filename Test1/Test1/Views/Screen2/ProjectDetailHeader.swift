@@ -8,12 +8,19 @@
 import SwiftUI
 
 struct ProjectDetailHeader: View {
+    @Environment(CanvasModel.self) private var canvasModel
+    @Environment(\.dismiss) private var dismiss
+    
     var body: some View {
         HStack {
             Spacer()
             
             Button {
                 // code back
+                canvasModel.saveChanges()
+                
+                dismiss()
+                
             } label: {
                 
                 Text("Save")

@@ -44,11 +44,32 @@ class CanvasModel {
     // 1. fetch
     func fetchData(_ id: Int) async throws {
         
+        // A: check data ở local trước
+        if let localProject = LocalFileManager.loadProject(projectId: id) {
+            self.projectDetail = localProject
+            
+            for photo in localProject.photos {
+                // Nếu url không phải link web (không bắt đầu bằng http) thì nó chính là tên file ảnh local
+                if !photo.url.hasPrefix("http") {
+                    if let savedImage = LocalFileManager.loadImage(imageName: photo.url) {
+                        self.localImages[photo.url] = savedImage
+                    }
+                }
+            }
+            return
+        }
+        
+        // B: Nếu A chưa có file , lấy data từ server
         do {
             let data = try await apiService.postAPI(projectId: id)
             self.projectDetail = data
+            
+            // save vào local
+            LocalFileManager.saveProject(project: data)
         } catch {
-            throw error
+            let fallbackProject = ProjectDetail(name: "new project", id: id, photos: [])
+            self.projectDetail = fallbackProject
+            LocalFileManager.saveProject(project: fallbackProject)
         }
     }
     
@@ -107,7 +128,9 @@ class CanvasModel {
     
     // 4. Save & back
     func saveChanges() {
-        
+        if let project = self.projectDetail {
+            LocalFileManager.saveProject(project: project)
+        }
     }
     
     
