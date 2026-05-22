@@ -32,7 +32,7 @@ class ProjectModel {
         do {
             let resAPI = try await apiService.getAPI()
             self.projects = resAPI.projects
-            // Lưu ngay xuống local sau khi lấy từ API
+            // Lưu vào local sau khi lấy từ API
             LocalFileManager.saveProjectList(resAPI.projects)
         } catch {
             throw error

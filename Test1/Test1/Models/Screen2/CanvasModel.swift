@@ -56,7 +56,10 @@ class CanvasModel {
                     }
                 }
             }
-            return
+            
+            if !localProject.photos.isEmpty {
+                return
+            }
         }
         
         // B: Nếu A chưa có file , lấy data từ server
@@ -86,9 +89,9 @@ class CanvasModel {
         let canvasCenterX = screenCenterX - Double(self.canvasOffset.width / self.canvasScale)
         let canvasCenterY = screenCenterY - Double(self.canvasOffset.height / self.canvasScale)
         
-        // Tọa độ top-left của ảnh
-        let x = canvasCenterX - (Double(imgW) / 2)
-        let y = canvasCenterY - (Double(imgH) / 2)
+        // Tọa độ TÂM của ảnh
+        let x = canvasCenterX
+        let y = canvasCenterY
         
         let newPhoto = Photo(
             url: url,
@@ -116,8 +119,19 @@ class CanvasModel {
             
             if selectPhotoIdx >= 0 && selectPhotoIdx < photoLength {
                 
+                // Lấy url (tên file ảnh) để xoá file vật lý
+                let photoUrl = project.photos[selectPhotoIdx].url
+                
                 // delete
                 self.projectDetail?.photos.remove(at: selectPhotoIdx)
+                
+                // Xoá ảnh khỏi ổ cứng nếu là ảnh local
+                if !photoUrl.hasPrefix("http") {
+                    self.localImages.removeValue(forKey: photoUrl)
+                    let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+                    let fileUrl = paths[0].appendingPathComponent(photoUrl)
+                    try? FileManager.default.removeItem(at: fileUrl)
+                }
                 
                 // go~ bo trang thai dang select
                 self.selectedPhotoIndex = nil
@@ -137,31 +151,22 @@ class CanvasModel {
     
     // ==================================== logic gestures =======================================
     
-    // 5. move photo
-    func movePhoto(index: Int, newX: Double, newY: Double) {
-        
-        self.projectDetail?.photos[index].frame.x = newX
-        self.projectDetail?.photos[index].frame.y = newY
+    // 5. drag
+    func panPhoto(index: Int, delta: CGSize) {
+        self.projectDetail?.photos[index].frame.x += Double(delta.width)
+        self.projectDetail?.photos[index].frame.y += Double(delta.height)
     }
     
-    // 6. rotate photo
-    func rotatePhoto(index: Int, angle: Double) {
-        self.projectDetail?.photos[index].rotation = angle
+    // 6. zoom
+    func pinchPhoto(index: Int, scale: Double) {
+        self.projectDetail?.photos[index].frame.width *= scale
+        self.projectDetail?.photos[index].frame.height *= scale
     }
     
-    // 7. zoom
-    func zoom(index: Int, newW: Double, newH: Double) {
-        if let oldW = self.projectDetail?.photos[index].frame.width, let oldH = self.projectDetail?.photos[index].frame.height {
-            
-            // move top-left x, y để giữ nguyên tâm image
-            let dx = (oldW - newW) / 2
-            let dy = (oldH - newH) / 2
-            
-            self.projectDetail?.photos[index].frame.x += dx
-            self.projectDetail?.photos[index].frame.y += dy
-        }
-        
-        self.projectDetail?.photos[index].frame.width = newW
-        self.projectDetail?.photos[index].frame.height = newH
+    // 7. rotate
+    func rotatePhotoDelta(index: Int, angleRadians: Double) {
+        let current = self.projectDetail?.photos[index].rotation ?? 0
+        let degrees = angleRadians * 180.0 / .pi
+        self.projectDetail?.photos[index].rotation = current + degrees
     }
 }

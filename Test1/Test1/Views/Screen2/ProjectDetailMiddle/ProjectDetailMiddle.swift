@@ -15,13 +15,10 @@ struct ProjectDetailMiddle: View {
     @State private var lastCanvasOffset: CGSize = .zero
     
     var body: some View {
-        // container
         ZStack {
-            // 1. Lớp nền ảo để hứng Gesture (khi tap hoặc vuốt ra ngoài ảnh)
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    // Bỏ chọn ảnh nếu bấm ra ngoài
                     canvasModel.selectedPhotoIndex = nil
                 }
                 .gesture(
@@ -46,48 +43,45 @@ struct ProjectDetailMiddle: View {
                         }
                 )
             
-            // 2. Vùng chứa image
             ZStack {
-                // unwrap
                 if let detail = canvasModel.projectDetail {
+                    
                     ForEach(detail.photos) { photo in
-                        // index của image đang chọn
                         if let index = detail.photos.firstIndex(where: { $0.id == photo.id }) {
-                            
                             let isSelected = (canvasModel.selectedPhotoIndex == index)
                             
                             PhotoItemView(
                                 photo: photo,
+                                index: index,
                                 isSelect: isSelected,
                                 onTap: {
-                                    // Chỉ cập nhật khi chưa chọn
                                     if canvasModel.selectedPhotoIndex != index {
                                         canvasModel.selectedPhotoIndex = index
                                     }
-                                },
-                                onMove: { newX, newY in
-                                    canvasModel.movePhoto(index: index, newX: newX, newY: newY)
-                                },
-                                onZoom: { newW, newH in
-                                    canvasModel.zoom(index: index, newW: newW, newH: newH)
-                                },
-                                onRotate: { angle in
-                                    canvasModel.rotatePhoto(index: index, angle: angle)
-                                },
-                                onDelete: {
-                                    canvasModel.deletePhoto()
                                 }
                             )
                             .zIndex(isSelected ? 1 : 0)
                         }
                     }
+                    
+                    // Viền  + chấm + nút xoá
+                    if let selectedIndex = canvasModel.selectedPhotoIndex,
+                       selectedIndex >= 0,
+                       selectedIndex < detail.photos.count {
+                        PhotoSelectionOverlay(
+                            photo: detail.photos[selectedIndex],
+                            canvasScale: canvasModel.canvasScale,
+                            onDelete: {
+                                canvasModel.deletePhoto()
+                            }
+                        )
+                        .zIndex(2)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .coordinateSpace(name: "Canvas") // Name tự đặt tên theo ngữ cảnh
             .scaleEffect(canvasModel.canvasScale)
             .offset(canvasModel.canvasOffset)
-    //        .clipped()
         }
     }
 }
@@ -95,15 +89,12 @@ struct ProjectDetailMiddle: View {
 // ==================================
 
 #Preview {
-
     let liveModel = CanvasModel()
 
     return ProjectDetailMiddle()
         .environment(liveModel)
-        
         .task {
             do {
-
                 try await liveModel.fetchData(21)
             } catch {
                 print("Lỗi tải API trong lúc Preview: \(error)")
