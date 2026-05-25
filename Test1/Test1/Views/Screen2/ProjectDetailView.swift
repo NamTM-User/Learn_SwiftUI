@@ -18,7 +18,7 @@ struct ProjectDetailView: View {
         VStack(spacing: 0) {
             
             // top
-            ProjectDetailHeader()
+            ProjectDetailHeader(canvasSize: canvasSize)
             
             // mid
             ProjectDetailMiddle()

@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import SwiftUI
+import UIKit
 
 @Observable
 class CanvasModel {
@@ -36,6 +37,11 @@ class CanvasModel {
 
         guard let image = UIImage(data: data) else {
             throw URLError(.cannotDecodeContentData)
+        }
+        
+        // Cache ảnh tải từ server vào thư viện localImages để dùng cho lúc Save ảnh
+        await MainActor.run {
+            self.localImages[urlString] = image
         }
 
         return Image(uiImage: image)
@@ -147,23 +153,77 @@ class CanvasModel {
         }
     }
     
+    //5 render canvas
+    func renderCanvasImage(canvasSize: CGSize) -> UIImage? {
+        // init render
+        let render = UIGraphicsImageRenderer(size: canvasSize)
+        
+        guard let photos = self.projectDetail?.photos else { return nil }
+        
+        // vẽ để tạo ảnh
+        let image = render.image { context in
+            // vẽ gì trong này đều sẽ thành UIImage
+            
+            /*
+             Hàm vẽ mặc định của apple chỉ cho phép vẽ ảnh theo phương thẳng đứng
+             Cách duy nhất trong iOS để vẽ một bức ảnh nằm nghiêng (ví dụ nghiêng 45 độ) là  phải cầm cả tờ giấy xoay đi 45 độ, sau đó vẽ thẳng lên tờ giấy đã nghiêng đó.
+             -> phải có .cgContext để có thể xoay được canvas (Apple chỉ hỗ trợ cho cấp độ .cgContext)
+             */
+            let cgContext = context.cgContext
+            // 1.fill background canvas
+            UIColor.white.setFill()
+            cgContext.fill(CGRect(origin: .zero, size: canvasSize))
+            
+            // render image
+            for photo in photos {
+                // chỉ vẽ nếu img đã được load thành công
+                
+                guard let img = self.localImages[photo.url] else { continue }
+                
+                // save toạ độ hiện tại vào stack
+                cgContext.saveGState()
+                
+                let centerX = CGFloat(photo.frame.x)
+                let centerY = CGFloat(photo.frame.y)
+                let w = CGFloat(photo.frame.width)
+                let h = CGFloat(photo.frame.height)
+                
+                // A. Dịch hệ toạ độ về đúng tâm của ảnh
+                cgContext.translateBy(x: centerX, y: centerY)
+                
+                // B. Xoay nghiêng hệ trục toạ độ
+                let radian = CGFloat(photo.rotation ?? 0) * .pi / 180.0
+                cgContext.rotate(by: radian)
+                
+                // C. vẽ ảnh
+                let drawRect = CGRect(x: -w/2, y: -h/2, width: w, height: h)
+                img.draw(in: drawRect)
+                
+                // reset về toạ độ gốc để vẽ img tiếp
+                cgContext.restoreGState()
+            }
+        }
+        
+        return image
+    }
+    
     
     
     // ==================================== logic gestures =======================================
     
-    // 5. drag
+    // 6. drag
     func panPhoto(index: Int, delta: CGSize) {
         self.projectDetail?.photos[index].frame.x += Double(delta.width)
         self.projectDetail?.photos[index].frame.y += Double(delta.height)
     }
     
-    // 6. zoom
+    // 7. zoom
     func pinchPhoto(index: Int, scale: Double) {
         self.projectDetail?.photos[index].frame.width *= scale
         self.projectDetail?.photos[index].frame.height *= scale
     }
     
-    // 7. rotate
+    // 8. rotate
     func rotatePhotoDelta(index: Int, angleRadians: Double) {
         let current = self.projectDetail?.photos[index].rotation ?? 0
         let degrees = angleRadians * 180.0 / .pi

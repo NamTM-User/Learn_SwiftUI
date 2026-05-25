@@ -10,38 +10,33 @@ import SwiftUI
 struct ProjectDetailMiddle: View {
     @Environment(CanvasModel.self) private var canvasModel
     
-    // State cho Zoom & Move toàn bộ Canvas
-    @State private var lastCanvasScale: CGFloat = 1.0
-    @State private var lastCanvasOffset: CGSize = .zero
-    
     var body: some View {
-        ZStack {
-            Color.clear
+        GeometryReader { geo in
+            let screenCenter = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
+            
+            ZStack {
+                Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture {
                     canvasModel.selectedPhotoIndex = nil
                 }
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            canvasModel.canvasOffset = CGSize(
-                                width: lastCanvasOffset.width + value.translation.width,
-                                height: lastCanvasOffset.height + value.translation.height
-                            )
-                        }
-                        .onEnded { _ in
-                            lastCanvasOffset = canvasModel.canvasOffset
-                        }
-                )
-                .simultaneousGesture(
-                    MagnifyGesture()
-                        .onChanged { value in
-                            canvasModel.canvasScale = lastCanvasScale * value.magnification
-                        }
-                        .onEnded { _ in
-                            lastCanvasScale = canvasModel.canvasScale
-                        }
-                )
+                .gesture(CanvasPanGesture { delta in
+                    canvasModel.canvasOffset.width += delta.width
+                    canvasModel.canvasOffset.height += delta.height
+                })
+                .gesture(CanvasPinchGesture { scaleDelta, focalPoint in
+                    let oldScale = canvasModel.canvasScale
+                    let newScale = oldScale * scaleDelta
+                    canvasModel.canvasScale = newScale
+                    
+                    // Độ lệch = khoảng cách từ ngón tay đến tâm màn hình
+                    let focalX = focalPoint.x - screenCenter.x
+                    let focalY = focalPoint.y - screenCenter.y
+                    
+                    // Tính lại offset mới bằng cách bù trừ đúng bằng sự giãn nở do scale
+                    canvasModel.canvasOffset.width = focalX - (focalX - canvasModel.canvasOffset.width) * scaleDelta
+                    canvasModel.canvasOffset.height = focalY - (focalY - canvasModel.canvasOffset.height) * scaleDelta
+                })
             
             ZStack {
                 if let detail = canvasModel.projectDetail {
@@ -82,6 +77,8 @@ struct ProjectDetailMiddle: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .scaleEffect(canvasModel.canvasScale)
             .offset(canvasModel.canvasOffset)
+        }
+        .frame(width: geo.size.width, height: geo.size.height)
         }
     }
 }

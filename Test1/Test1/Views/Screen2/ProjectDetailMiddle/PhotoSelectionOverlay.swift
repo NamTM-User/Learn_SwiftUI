@@ -23,7 +23,6 @@ struct PhotoSelectionOverlay: View {
         let bottomLeft  = rotatedPoint(cx: cx, cy: cy, dx: -hw, dy:  hh, angle: angle)
         let bottomRight = rotatedPoint(cx: cx, cy: cy, dx:  hw, dy:  hh, angle: angle)
         
-        // Nút delete phía trên tâm cạnh top
         let deletePos = rotatedPoint(cx: cx, cy: cy, dx: 0, dy: -hh - (35 / canvasScale), angle: angle)
         
         ZStack {
@@ -36,7 +35,7 @@ struct PhotoSelectionOverlay: View {
                 canvasScale: canvasScale
             )
             
-            // 4 .
+            // 4 dot
             ControlDot(position: topLeft, scale: canvasScale)
             ControlDot(position: topRight, scale: canvasScale)
             ControlDot(position: bottomLeft, scale: canvasScale)
@@ -46,6 +45,7 @@ struct PhotoSelectionOverlay: View {
             DeleteButtonView(
                 position: deletePos,
                 canvasScale: canvasScale,
+                angle: Angle(degrees: photo.rotation ?? 0),
                 action: onDelete
             )
         }
@@ -70,7 +70,6 @@ struct ControlDot: View {
             .frame(width: 12, height: 12)
             .overlay(Circle().stroke(Color.blue, lineWidth: 2))
             .position(position)
-//            .scaleEffect(1 / scale)
             .allowsHitTesting(false)
     }
 }
@@ -100,6 +99,7 @@ struct SelectionBorderView: View {
 struct DeleteButtonView: View {
     let position: CGPoint
     let canvasScale: CGFloat
+    let angle: Angle
     let action: () -> Void
     
     var body: some View {
@@ -117,8 +117,7 @@ struct DeleteButtonView: View {
                     .cornerRadius(1)
             }
         }
+        .rotationEffect(angle)
         .position(position)
-        // Dùng GPU scale ngược lại để triệt tiêu Jitter khi zoom Canvas!
-//        .scaleEffect(1 / canvasScale)
     }
 }

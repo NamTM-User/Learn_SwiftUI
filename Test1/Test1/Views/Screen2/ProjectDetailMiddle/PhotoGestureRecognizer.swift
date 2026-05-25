@@ -130,3 +130,50 @@ extension View {
         ))
     }
 }
+
+
+// Gestures Canvas (Background)
+struct CanvasPanGesture: UIGestureRecognizerRepresentable {
+    let onDelta: (CGSize) -> Void
+    
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator {
+        Coordinator.shared
+    }
+    
+    func makeUIGestureRecognizer(context: Context) -> UIPanGestureRecognizer {
+        let pan = UIPanGestureRecognizer()
+        pan.delegate = context.coordinator
+        return pan
+    }
+    
+    func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context: Context) {
+        if recognizer.state == .changed {
+            let t = recognizer.translation(in: nil)
+            onDelta(CGSize(width: t.x, height: t.y)) 
+            recognizer.setTranslation(.zero, in: nil)
+        }
+    }
+}
+
+struct CanvasPinchGesture: UIGestureRecognizerRepresentable {
+    let onPinch: (CGFloat, CGPoint) -> Void
+    
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator {
+        Coordinator.shared
+    }
+    
+    func makeUIGestureRecognizer(context: Context) -> UIPinchGestureRecognizer {
+        let pinch = UIPinchGestureRecognizer()
+        pinch.delegate = context.coordinator
+        return pinch
+    }
+    
+    func handleUIGestureRecognizerAction(_ recognizer: UIPinchGestureRecognizer, context: Context) {
+        if recognizer.state == .changed {
+            let scaleDelta = recognizer.scale
+            let focalPoint = recognizer.location(in: nil)
+            onPinch(scaleDelta, focalPoint)
+            recognizer.scale = 1.0
+        }
+    }
+}
