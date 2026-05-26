@@ -11,7 +11,7 @@ struct PhotoLibrarySaver {
     static func save(image: UIImage) async throws {
         
         // Gọi thẳng vào kho lưu trữ ảnh dùng chung (shared) của thiết bị.
-        // Hàm performChanges yêu cầu hệ thống mở cửa kho để chúng ta đưa dữ liệu và
+        // Hàm performChanges yêu cầu hệ thống mở cửa để đưa dữ liệu và
         try await PHPhotoLibrary.shared().performChanges {
             // lưu ảnh vào photos
             PHAssetChangeRequest.creationRequestForAsset(from: image)

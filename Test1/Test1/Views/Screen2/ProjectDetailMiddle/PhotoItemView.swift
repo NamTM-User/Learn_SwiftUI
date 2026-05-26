@@ -15,9 +15,6 @@ struct PhotoItemView: View {
     let isSelect: Bool
     let onTap: () -> Void
     
-    // State
-    @State private var loaderImage: Image?
-    
     var body: some View {
         
         
@@ -26,14 +23,10 @@ struct PhotoItemView: View {
                 Image(uiImage: localImg)
                     .resizable()
                     .scaledToFill()
-            } else if let image = loaderImage {
-                image.resizable().scaledToFill()
             } else {
-                    ProgressView()
+                ProgressView()
                     .task {
-                        if let dowloadImage = try? await canvasModel.loadImage(urlString: photo.url) {
-                            self.loaderImage = dowloadImage
-                        }
+                        let _ = try? await canvasModel.loadImage(urlString: photo.url)
                     }
             }
         }
@@ -51,11 +44,11 @@ struct PhotoItemView: View {
             onPan: { delta in
                 canvasModel.panPhoto(index: index, delta: delta)
             },
-            onPinch: { scale in
-                canvasModel.pinchPhoto(index: index, scale: scale)
+            onPinch: { scale, focalPoint in
+                canvasModel.pinchPhoto(index: index, scale: scale, screenFocalPoint: focalPoint)
             },
-            onRotate: { angle in
-                canvasModel.rotatePhotoDelta(index: index, angleRadians: angle)
+            onRotate: { angle, focalPoint in
+                canvasModel.rotatePhotoDelta(index: index, angleRadians: angle, screenFocalPoint: focalPoint)
             }
         )
     }

@@ -54,7 +54,7 @@ struct LocalFileManager {
     // 4. save image
     static func saveImage(image: UIImage , imageName: String) {
         // convert UIImage -> JPEG
-        guard let data = image.jpegData(compressionQuality: 0.8) else { return }
+        guard let data = image.jpegData(compressionQuality: 0.9) else { return }
         
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         let url = paths[0].appendingPathComponent(imageName)
@@ -110,9 +110,14 @@ struct LocalFileManager {
             let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
             
             for photo in project.photos {
-                // Chỉ xoá ảnh local
                 if !photo.url.hasPrefix("http") {
+                    // Xoá ảnh local
                     let imageUrl = paths[0].appendingPathComponent(photo.url)
+                    try? FileManager.default.removeItem(at: imageUrl)
+                } else {
+                    // Xoá ảnh web đã cache
+                    let safeImageName = photo.url.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+                    let imageUrl = paths[0].appendingPathComponent(safeImageName)
                     try? FileManager.default.removeItem(at: imageUrl)
                 }
             }

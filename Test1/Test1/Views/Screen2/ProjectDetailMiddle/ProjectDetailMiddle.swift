@@ -12,14 +12,15 @@ struct ProjectDetailMiddle: View {
     
     var body: some View {
         GeometryReader { geo in
-            let screenCenter = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
+            let globalFrame = geo.frame(in: .local)
+            let screenCenter = CGPoint(x: globalFrame.midX, y: globalFrame.midY)
             
             ZStack {
                 Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture {
                     canvasModel.selectedPhotoIndex = nil
-                }
+                }   
                 .gesture(CanvasPanGesture { delta in
                     canvasModel.canvasOffset.width += delta.width
                     canvasModel.canvasOffset.height += delta.height
@@ -44,7 +45,7 @@ struct ProjectDetailMiddle: View {
                     ForEach(detail.photos) { photo in
                         if let index = detail.photos.firstIndex(where: { $0.id == photo.id }) {
                             let isSelected = (canvasModel.selectedPhotoIndex == index)
-                            
+                            // render img
                             PhotoItemView(
                                 photo: photo,
                                 index: index,
@@ -58,32 +59,37 @@ struct ProjectDetailMiddle: View {
                             .zIndex(isSelected ? 1 : 0)
                         }
                     }
-                    
-                    // Viền  + chấm + nút xoá
-                    if let selectedIndex = canvasModel.selectedPhotoIndex,
-                       selectedIndex >= 0,
-                       selectedIndex < detail.photos.count {
-                        PhotoSelectionOverlay(
-                            photo: detail.photos[selectedIndex],
-                            canvasScale: canvasModel.canvasScale,
-                            onDelete: {
-                                canvasModel.deletePhoto()
-                            }
-                        )
-                        .zIndex(2)
-                    }
+                    // Chỉ chứa ảnh trong ZStack này
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .scaleEffect(canvasModel.canvasScale)
             .offset(canvasModel.canvasOffset)
+            
+            // Lớp UI Overlay đặt ở ngoài
+            if let detail = canvasModel.projectDetail,
+               let selectedIndex = canvasModel.selectedPhotoIndex,
+               selectedIndex >= 0,
+               selectedIndex < detail.photos.count {
+                PhotoSelectionOverlay(
+                    photo: detail.photos[selectedIndex],
+                    canvasScale: canvasModel.canvasScale,
+                    canvasOffset: canvasModel.canvasOffset,
+                    screenCenter: screenCenter,
+                    onDelete: {
+                        canvasModel.deletePhoto()
+                    }
+                )
+                .zIndex(2)
+            }
         }
         .frame(width: geo.size.width, height: geo.size.height)
+        .onAppear { canvasModel.canvasAreaCenter = screenCenter }
         }
     }
 }
 
-// ==================================
+// =========================================
 
 #Preview {
     let liveModel = CanvasModel()

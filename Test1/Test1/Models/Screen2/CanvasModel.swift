@@ -24,11 +24,26 @@ class CanvasModel {
     var canvasScale: CGFloat = 1.0
     var canvasOffset: CGSize = .zero
     
+    // Tâm vùng Canvas trên màn hình
+    var canvasAreaCenter: CGPoint = .zero
+    
     // api
     private let apiService = APIService()
     
     // load image
     func loadImage(urlString: String) async throws -> Image {
+        // 1. Tạo tên file an toàn cho ảnh từ mạng
+        let safeImageName = urlString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? UUID().uuidString
+        
+        // 2. Thử load ảnh từ local trước (nếu đã từng tải)
+        if let savedImage = LocalFileManager.loadImage(imageName: safeImageName) {
+            await MainActor.run {
+                self.localImages[urlString] = savedImage
+            }
+            return Image(uiImage: savedImage)
+        }
+        
+        // 3. Nếu chưa có local, tiến hành tải từ mạng
         guard let url = URL(string: urlString) else {
             throw URLError(.badURL)
         }
@@ -38,6 +53,9 @@ class CanvasModel {
         guard let image = UIImage(data: data) else {
             throw URLError(.cannotDecodeContentData)
         }
+        
+        // 4. Lưu ảnh vừa tải xuống
+        LocalFileManager.saveImage(image: image, imageName: safeImageName)
         
         // Cache ảnh tải từ server vào thư viện localImages để dùng cho lúc Save ảnh
         await MainActor.run {
@@ -60,6 +78,12 @@ class CanvasModel {
                     if let savedImage = LocalFileManager.loadImage(imageName: photo.url) {
                         self.localImages[photo.url] = savedImage
                     }
+                } else {
+                    // Check xem ảnh web này đã có cache trong máy chưa
+                    let safeImageName = photo.url.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+                    if let savedImage = LocalFileManager.loadImage(imageName: safeImageName) {
+                        self.localImages[photo.url] = savedImage
+                    }
                 }
             }
             
@@ -75,6 +99,16 @@ class CanvasModel {
             
             // save vào local
             LocalFileManager.saveProject(project: data)
+            
+            // 
+            for photo in data.photos {
+                if photo.url.hasPrefix("http") {
+                    let safeImageName = photo.url.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+                    if let savedImage = LocalFileManager.loadImage(imageName: safeImageName) {
+                        self.localImages[photo.url] = savedImage
+                    }
+                }
+            }
         } catch {
             let fallbackProject = ProjectDetail(name: "new project", id: id, photos: [])
             self.projectDetail = fallbackProject
@@ -125,17 +159,24 @@ class CanvasModel {
             
             if selectPhotoIdx >= 0 && selectPhotoIdx < photoLength {
                 
-                // Lấy url (tên file ảnh) để xoá file vật lý
+                // Lấy url
                 let photoUrl = project.photos[selectPhotoIdx].url
                 
                 // delete
                 self.projectDetail?.photos.remove(at: selectPhotoIdx)
                 
-                // Xoá ảnh khỏi ổ cứng nếu là ảnh local
+                // Xoá ảnh khỏi ổ cứng
+                self.localImages.removeValue(forKey: photoUrl)
+                let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+                
                 if !photoUrl.hasPrefix("http") {
-                    self.localImages.removeValue(forKey: photoUrl)
-                    let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+                    // Ảnh local
                     let fileUrl = paths[0].appendingPathComponent(photoUrl)
+                    try? FileManager.default.removeItem(at: fileUrl)
+                } else {
+                    // Ảnh web (xoá cache)
+                    let safeImageName = photoUrl.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+                    let fileUrl = paths[0].appendingPathComponent(safeImageName)
                     try? FileManager.default.removeItem(at: fileUrl)
                 }
                 
@@ -218,15 +259,45 @@ class CanvasModel {
     }
     
     // 7. zoom
-    func pinchPhoto(index: Int, scale: Double) {
-        self.projectDetail?.photos[index].frame.width *= scale
-        self.projectDetail?.photos[index].frame.height *= scale
+    func pinchPhoto(index: Int, scale: Double, screenFocalPoint: CGPoint) {
+        guard var photo = self.projectDetail?.photos[index] else { return }
+        
+        // 1. ngón tay
+        let focalX = canvasAreaCenter.x + (screenFocalPoint.x - canvasAreaCenter.x - canvasOffset.width) / canvasScale
+        let focalY = canvasAreaCenter.y + (screenFocalPoint.y - canvasAreaCenter.y - canvasOffset.height) / canvasScale
+        
+        // 2. Dịch chuyển tâm ảnh để điểm dưới ngón tay đứng yên
+        //    Công thức: new_center = focalPoint + (old_center - focalPoint) * scaleDelta
+        photo.frame.x = focalX + (photo.frame.x - focalX) * scale
+        photo.frame.y = focalY + (photo.frame.y - focalY) * scale
+        
+        // 3. Scale kích thước ảnh
+        photo.frame.width *= scale
+        photo.frame.height *= scale
+        
+        self.projectDetail?.photos[index] = photo
     }
     
     // 8. rotate
-    func rotatePhotoDelta(index: Int, angleRadians: Double) {
-        let current = self.projectDetail?.photos[index].rotation ?? 0
+    func rotatePhotoDelta(index: Int, angleRadians: Double, screenFocalPoint: CGPoint) {
+        guard var photo = self.projectDetail?.photos[index] else { return }
+        
+        let current = photo.rotation ?? 0
         let degrees = angleRadians * 180.0 / .pi
-        self.projectDetail?.photos[index].rotation = current + degrees
+        photo.rotation = current + degrees
+        
+        let focalX = canvasAreaCenter.x + (screenFocalPoint.x - canvasAreaCenter.x - canvasOffset.width) / canvasScale
+        let focalY = canvasAreaCenter.y + (screenFocalPoint.y - canvasAreaCenter.y - canvasOffset.height) / canvasScale
+        
+        let dx = photo.frame.x - focalX
+        let dy = photo.frame.y - focalY
+        
+        let cosA = cos(angleRadians)
+        let sinA = sin(angleRadians)
+        
+        photo.frame.x = focalX + dx * cosA - dy * sinA
+        photo.frame.y = focalY + dx * sinA + dy * cosA
+        
+        self.projectDetail?.photos[index] = photo
     }
 }

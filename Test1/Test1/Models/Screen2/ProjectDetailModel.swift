@@ -32,14 +32,6 @@ struct Photo: Codable, Identifiable {
         self.frame = frame
         self.rotation = rotation
     }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.url = try container.decode(String.self, forKey: .url)
-        self.frame = try container.decode(Frame.self, forKey: .frame)
-        self.rotation = try container.decodeIfPresent(Double.self, forKey: .rotation)
-        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-    }
 }
 
 struct Frame: Codable {

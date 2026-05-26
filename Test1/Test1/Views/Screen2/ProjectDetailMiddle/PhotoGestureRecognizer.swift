@@ -2,7 +2,10 @@ import SwiftUI
 
 class Coordinator: NSObject, UIGestureRecognizerDelegate {
     static let shared = Coordinator()
-    func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool { true }
+    func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
+        // Chỉ cho phép đa nhiệm nếu 2 cử chỉ đang tác động lên cùng 1 view
+        true
+    }
 }
 
 // 1. gesture di chuyen (pan / drag)
@@ -24,22 +27,21 @@ struct PhotoPanGesture: UIGestureRecognizerRepresentable {
     func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context: Context) {
         // Kiểm tra nếu ngón tay đang di chuyển (trạng thái .changed) thì mới xử lý
         if recognizer.state == .changed {
-            // Lấy translation dựa trên tọa độ màn hình gốc (in: nil) để không bị ảnh hưởng nếu ảnh đang bị xoay
-            let t = recognizer.translation(in: nil)
+            // Lấy translation dựa trên view cha (Canvas)
+            let t = recognizer.translation(in: recognizer.view?.superview)
             // Khử tỉ lệ phóng to của Canvas
             let delta = CGSize(width: t.x / canvasScale, height: t.y / canvasScale)
             onDelta(delta)
             // reset
-            recognizer.setTranslation(.zero, in: nil)
+            recognizer.setTranslation(.zero, in: recognizer.view?.superview)
         }
     }
     
 }
 
 // 2. zoom
-
 struct PhotoPinchGesture: UIGestureRecognizerRepresentable {
-    let onDelta: (CGFloat) -> Void
+    let onDelta: (CGFloat, CGPoint) -> Void
     
     // Hàm tạo ra Coordinator
     func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator {
@@ -52,10 +54,11 @@ struct PhotoPinchGesture: UIGestureRecognizerRepresentable {
         return pinch
     }
     
-    // Hàm xử lý khi người dùng banh/khép 2 ngón tay
+    // Hàm xử lý khi người dùng zoom 2 ngón tay
     func handleUIGestureRecognizerAction(_ recognizer: UIPinchGestureRecognizer, context: Context) {
         if recognizer.state == .changed {
-            onDelta(recognizer.scale)
+            let focalPoint = recognizer.location(in: recognizer.view?.superview)
+            onDelta(recognizer.scale, focalPoint)
             recognizer.scale = 1.0
         }
     }
@@ -63,9 +66,8 @@ struct PhotoPinchGesture: UIGestureRecognizerRepresentable {
 }
 
 // 3. rotate
-
 struct PhotoRotateGesture: UIGestureRecognizerRepresentable {
-    let onDelta: (CGFloat) -> Void
+    let onDelta: (CGFloat, CGPoint) -> Void
     
     func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator {
         Coordinator.shared
@@ -81,7 +83,8 @@ struct PhotoRotateGesture: UIGestureRecognizerRepresentable {
     // Hàm xử lý góc xoay khi người dùng vặn 2 ngón tay
     func handleUIGestureRecognizerAction(_ recognizer: UIRotationGestureRecognizer, context: Context) {
         if recognizer.state == .changed {
-            onDelta(recognizer.rotation)
+            let focalPoint = recognizer.location(in: recognizer.view?.superview)
+            onDelta(recognizer.rotation, focalPoint)
             // reset
             recognizer.rotation = 0.0
         }
@@ -95,8 +98,8 @@ struct PhotoGesturesModifier: ViewModifier {
     let isSelected: Bool
     let canvasScale: CGFloat
     let onPan: (CGSize) -> Void
-    let onPinch: (CGFloat) -> Void
-    let onRotate: (CGFloat) -> Void
+    let onPinch: (CGFloat, CGPoint) -> Void
+    let onRotate: (CGFloat, CGPoint) -> Void
     
     func body(content: Content) -> some View {
         if isSelected {
@@ -118,8 +121,8 @@ extension View {
         isSelected: Bool,
         canvasScale: CGFloat,
         onPan: @escaping (CGSize) -> Void,
-        onPinch: @escaping (CGFloat) -> Void,
-        onRotate: @escaping (CGFloat) -> Void
+        onPinch: @escaping (CGFloat, CGPoint) -> Void,
+        onRotate: @escaping (CGFloat, CGPoint) -> Void
     ) -> some View {
         self.modifier(PhotoGesturesModifier(
             isSelected: isSelected,
@@ -132,7 +135,7 @@ extension View {
 }
 
 
-// Gestures Canvas (Background)
+// -------- Gestures Canvas (Background)
 struct CanvasPanGesture: UIGestureRecognizerRepresentable {
     let onDelta: (CGSize) -> Void
     
@@ -148,9 +151,9 @@ struct CanvasPanGesture: UIGestureRecognizerRepresentable {
     
     func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context: Context) {
         if recognizer.state == .changed {
-            let t = recognizer.translation(in: nil)
+            let t = recognizer.translation(in: recognizer.view)
             onDelta(CGSize(width: t.x, height: t.y)) 
-            recognizer.setTranslation(.zero, in: nil)
+            recognizer.setTranslation(.zero, in: recognizer.view)
         }
     }
 }
@@ -171,7 +174,8 @@ struct CanvasPinchGesture: UIGestureRecognizerRepresentable {
     func handleUIGestureRecognizerAction(_ recognizer: UIPinchGestureRecognizer, context: Context) {
         if recognizer.state == .changed {
             let scaleDelta = recognizer.scale
-            let focalPoint = recognizer.location(in: nil)
+            let focalPoint = recognizer.location(in: recognizer.view)
+
             onPinch(scaleDelta, focalPoint)
             recognizer.scale = 1.0
         }
