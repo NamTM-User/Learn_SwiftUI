@@ -17,10 +17,10 @@ struct ProjectDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             
-            // top
+            // 1. top
             ProjectDetailHeader(canvasSize: canvasSize)
             
-            // mid
+            // 2. mid
             ProjectDetailMiddle()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(red: 0.9, green: 0.95, blue: 1.0))
@@ -36,9 +36,12 @@ struct ProjectDetailView: View {
                     }
                 )
                 .clipped()
-                
             
-            // bot
+            // 3. slider
+            Slider()
+                .padding(15)
+            
+            // 4. bot
             ProjectDetailBottom { image in
                 if let img = UIImage(data: image){
                     let randomURL = UUID().uuidString

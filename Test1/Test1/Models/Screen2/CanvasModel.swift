@@ -174,7 +174,6 @@ class CanvasModel {
                     let fileUrl = paths[0].appendingPathComponent(photoUrl)
                     try? FileManager.default.removeItem(at: fileUrl)
                 } else {
-                    // Ảnh web (xoá cache)
                     let safeImageName = photoUrl.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
                     let fileUrl = paths[0].appendingPathComponent(safeImageName)
                     try? FileManager.default.removeItem(at: fileUrl)
@@ -194,7 +193,7 @@ class CanvasModel {
         }
     }
     
-    //5 render canvas
+    // 5. render canvas
     func renderCanvasImage(canvasSize: CGSize) -> UIImage? {
         // init render
         let render = UIGraphicsImageRenderer(size: canvasSize)
@@ -211,7 +210,7 @@ class CanvasModel {
              -> phải có .cgContext để có thể xoay được canvas (Apple chỉ hỗ trợ cho cấp độ .cgContext)
              */
             let cgContext = context.cgContext
-            // 1.fill background canvas
+            // 1. fill background canvas
             UIColor.white.setFill()
             cgContext.fill(CGRect(origin: .zero, size: canvasSize))
             
@@ -299,5 +298,17 @@ class CanvasModel {
         photo.frame.y = focalY + dx * sinA + dy * cosA
         
         self.projectDetail?.photos[index] = photo
+    }
+    
+    
+    // =============================== test 2 ====================================
+    // update Opacity
+    func updateOpacity(index: Int , opacity: Double) {
+        // check index
+        guard let photos = self.projectDetail?.photos,
+              index >= 0,
+              index < photos.count else { return }
+        
+        self.projectDetail?.photos[index].opacity = opacity
     }
 }

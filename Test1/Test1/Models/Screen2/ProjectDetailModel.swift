@@ -14,24 +14,11 @@ struct ProjectDetail: Codable {
 }
 
 struct Photo: Codable, Identifiable {
-    var id: UUID
+    var id: UUID = UUID()
     var url: String
     var frame: Frame
     var rotation: Double?
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case url
-        case frame
-        case rotation
-    }
-    
-    init(id: UUID = UUID(), url: String, frame: Frame, rotation: Double? = nil) {
-        self.id = id
-        self.url = url
-        self.frame = frame
-        self.rotation = rotation
-    }
+    var opacity: Double? = 1.0
 }
 
 struct Frame: Codable {

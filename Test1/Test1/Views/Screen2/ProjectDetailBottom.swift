@@ -14,7 +14,10 @@ struct ProjectDetailBottom: View {
     @State private var selectedItem: PhotosPickerItem?
     
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
+
+            
+            // 2. add photo
             PhotosPicker(selection: $selectedItem,
                          matching: .images) {
                 Text("Add Photo")
@@ -40,6 +43,6 @@ struct ProjectDetailBottom: View {
             
         }
         .frame(height: 150)
-        .background(Color(white: 0.98))
+        .background(Color(white: 0.95))
     }
 }

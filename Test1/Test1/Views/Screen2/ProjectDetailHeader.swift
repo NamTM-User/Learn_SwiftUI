@@ -15,38 +15,37 @@ struct ProjectDetailHeader: View {
     
     var body: some View {
         HStack {
-            Spacer()
-            
+            // 1. back
             Button {
-                Task {
-                    // 1 . Tạo ảnh từ Canvas
-                    guard let img = canvasModel.renderCanvasImage(canvasSize: canvasSize) else {
-                        return
-                    }
-                    
-                    do {
-                        // 2. save img
-                        try await PhotoLibrarySaver.save(image: img)
-                        
-                        canvasModel.saveChanges()
-                        dismiss()
-                    } catch {
-                        print("Lỗi: \(error)")
-                    }
-                }
-                
+                canvasModel.saveChanges()
+                // đóng màn hình
+                dismiss()
             } label: {
-                
-                Text("Save")
+            Text("Back")
+                    .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(.black)
             }
+            // 2. spacer
+            Spacer()
+            
+            // 3. export
+//            if let img = canvasModel.renderCanvasImage(canvasSize: canvasSize) {
+//                ShareLink(
+//                    item: Image(uiImage: img),
+//                    preview: SharePreview("abcxyz", image: Image(uiImage: img))
+//                ) {
+//                    Text("export")
+//                        .font(.system(size: 20, weight: .bold))
+//                        .foregroundStyle(.blue)
+//                }
+//            } else {
+//                Text("export")
+//                    .font(.system(size: 20, weight: .bold))
+//                    .foregroundStyle(.blue)
+//            }
             
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
     }
-}
-
-#Preview {
-    ProjectDetailHeader(canvasSize: CGSize(width: 300, height: 400))
 }

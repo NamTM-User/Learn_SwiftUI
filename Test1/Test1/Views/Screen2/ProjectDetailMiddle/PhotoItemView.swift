@@ -32,6 +32,7 @@ struct PhotoItemView: View {
         }
         .frame(width: photo.frame.width, height: photo.frame.height)
         .clipped()
+        .opacity(photo.opacity ?? 1.0)
         .rotationEffect(Angle(degrees: photo.rotation ?? 0))
         .position(x: photo.frame.x, y: photo.frame.y)
         .onTapGesture {
