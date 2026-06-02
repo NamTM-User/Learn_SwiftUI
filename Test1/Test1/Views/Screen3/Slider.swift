@@ -17,7 +17,7 @@ struct Slider: View {
            let photos = canvasModel.projectDetail?.photos,
            selectedIdx < photos.count {
             
-            let curOpacity = photos[selectedIdx].opacity ?? 1.0
+            let curOpacity = photos[selectedIdx].opacity
             
             GeometryReader { geo in
                 // calculate

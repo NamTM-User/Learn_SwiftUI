@@ -8,77 +8,59 @@
 import SwiftUI
 
 struct ProjectDetailView: View {
-    // testt
     let projectID: Int
-    
+
     @State private var canvasModel = CanvasModel()
-    @State private var canvasSize: CGSize = .zero
-    
+
     var body: some View {
         VStack(spacing: 0) {
-            
+
             // 1. top
-            ProjectDetailHeader(canvasSize: canvasSize)
-            
-            // 2. mid
+            ProjectDetailHeader()
+                .zIndex(1)
+                .padding(.bottom, 10)
+
+            // 2. canvas (UIScrollView)
             ProjectDetailMiddle()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(red: 0.9, green: 0.95, blue: 1.0))
-                .background(
-                    GeometryReader { geo in
-                        Color.clear
-                            .onAppear{
-                                canvasSize = geo.size // save kích thước màn hình của thiết bị user
-                            }
-                            .onChange(of: geo.size) { _, newValue in
-                                canvasSize = newValue
-                            }
-                    }
-                )
                 .clipped()
-            
-            // 3. slider
+
+            // 3. opacity slider
             Slider()
                 .padding(15)
-            
-            // 4. bot
-            ProjectDetailBottom { image in
-                if let img = UIImage(data: image){
-                    let randomURL = UUID().uuidString
-                    
-                    LocalFileManager.saveImage(image: img, imageName: randomURL)
-                    
-                    canvasModel.localImages[randomURL] = img
-                    
-                    let originalWidth = img.size.width
-                    let originalHeight = img.size.height
-                    let aspectRatio = originalWidth / originalHeight
-                    
-                    // Tính toán để ảnh chiếm tối đa 50% kích thước canvas
-                    var displayWidth = canvasSize.width * 0.5
-                    var displayHeight = displayWidth / aspectRatio
-                    
-                    if displayHeight > canvasSize.height * 0.5 {
-                        displayHeight = canvasSize.height * 0.5
-                        displayWidth = displayHeight * aspectRatio
-                    }
-                    
-                    canvasModel.addPhoto(
-                        url: randomURL, // random url
-                        imgW: displayWidth,
-                        imgH: displayHeight,
-                        canvasSize: canvasSize
-                    )
+
+            // 4. bottom – photo picker
+            ProjectDetailBottom { imageData in
+                // unwrap
+                guard let img = UIImage(data: imageData) else { return }
+
+                let randomURL = UUID().uuidString
+                LocalFileManager.saveImage(image: img, imageName: randomURL)
+                canvasModel.localImages[randomURL] = img
+
+                let screenW = UIScreen.main.bounds.width
+                let screenH = UIScreen.main.bounds.height
+                let aspectRatio = img.size.width / img.size.height
+
+                var displayW = screenW * 0.4
+                var displayH = displayW / aspectRatio
+                if displayH > screenH * 0.4 {
+                    displayH = screenH * 0.4
+                    displayW = displayH * aspectRatio
                 }
+
+                canvasModel.addPhoto(
+                    url: randomURL,
+                    baseSize: CGSize(width: displayW, height: displayH)
+                )
             }
         }
         .environment(canvasModel)
         .task {
             do {
                 try await canvasModel.fetchData(projectID)
-            }
-            catch {
-                print(error)
+            } catch {
+                print("fetchData error: \(error)")
             }
         }
     }

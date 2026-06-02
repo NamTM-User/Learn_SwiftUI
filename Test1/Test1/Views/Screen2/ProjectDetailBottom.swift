@@ -11,14 +11,15 @@ import PhotosUI
 struct ProjectDetailBottom: View {
     var onAddPhoto: (Data) -> Void
     
-    @State private var selectedItem: PhotosPickerItem?
+    @State private var selectedItems: [PhotosPickerItem] = []
     
     var body: some View {
         VStack(spacing: 20) {
 
             
             // 2. add photo
-            PhotosPicker(selection: $selectedItem,
+            PhotosPicker(selection: $selectedItems,
+                         maxSelectionCount: 0,
                          matching: .images) {
                 Text("Add Photo")
                     .font(.system(size: 18, weight: .bold))
@@ -30,13 +31,17 @@ struct ProjectDetailBottom: View {
             }
             .padding(.horizontal, 25)
             .padding(.bottom, 40)
-            //change
-            .onChange(of: selectedItem) { _, newItem in
+            .onChange(of: selectedItems) { _, newItems in
+                guard !newItems.isEmpty else { return }
+                
                 Task {
-                    if let imgData = try await newItem?.loadTransferable(type: Data.self) {
-                        onAddPhoto(imgData)
-                        selectedItem = nil
+                    for item in newItems {
+                        if let imgData = try? await item.loadTransferable(type: Data.self) {
+                            onAddPhoto(imgData)
+                        }
                     }
+                    // Reset lại mảng để lần sau có thể chọn tiếp chính các ảnh này 
+                    selectedItems.removeAll()
                 }
             }
             

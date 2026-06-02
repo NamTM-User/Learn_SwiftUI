@@ -9,48 +9,50 @@ import SwiftUI
 
 struct PhotoItemView: View {
     @Environment(CanvasModel.self) private var canvasModel
-    
+
     let photo: Photo
     let index: Int
     let isSelect: Bool
     let onTap: () -> Void
-    
+
     var body: some View {
-        
-        
+        let transform = photo.transform
+
         Group {
-            if let localImg = canvasModel.localImages[photo.url] {
-                Image(uiImage: localImg)
+            if let img = canvasModel.localImages[photo.url] {
+                Image(uiImage: img)
                     .resizable()
                     .scaledToFill()
             } else {
-                ProgressView()
+                Color.gray.opacity(0.15)
+                    .overlay(ProgressView())
                     .task {
                         let _ = try? await canvasModel.loadImage(urlString: photo.url)
                     }
             }
         }
-        .frame(width: photo.frame.width, height: photo.frame.height)
+        // ── Render chain BẮT BUỘC theo thứ tự này ──
+        // 1. frame = baseSize
+        // 2. clip
+        // 3. opacity
+        // 4. overlay gesture (TRƯỚC scale/rotate/position để hưởng chung transform)
+        // 5. scaleEffect 
+        // 6. rotationEffect
+        // 7. position = tâm trong canvas coordinate space
+        .frame(width: transform.baseSize.width, height: transform.baseSize.height)
         .clipped()
-        .opacity(photo.opacity ?? 1.0)
-        .rotationEffect(Angle(degrees: photo.rotation ?? 0))
-        .position(x: photo.frame.x, y: photo.frame.y)
-        .onTapGesture {
-            onTap()
-        }
-        // gắn UIKit 
-        .photoGestures(
-            isSelected: isSelect,
-            canvasScale: canvasModel.canvasScale,
-            onPan: { delta in
-                canvasModel.panPhoto(index: index, delta: delta)
-            },
-            onPinch: { scale, focalPoint in
-                canvasModel.pinchPhoto(index: index, scale: scale, screenFocalPoint: focalPoint)
-            },
-            onRotate: { angle, focalPoint in
-                canvasModel.rotatePhotoDelta(index: index, angleRadians: angle, screenFocalPoint: focalPoint)
-            }
+        .opacity(photo.opacity)
+        .overlay(
+            // Gesture overlay cùng frame với ảnh -> nhận cùng scaleEffect + rotationEffect + position
+            PhotoGesture(
+                idx: index,
+                isSelected: isSelect,
+                canvasModel: canvasModel
+            )
         )
+        .scaleEffect(transform.scale)
+        .rotationEffect(.radians(transform.rotation))
+        .position(transform.center)
+        .onTapGesture { onTap() }
     }
 }

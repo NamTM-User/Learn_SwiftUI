@@ -69,8 +69,7 @@ struct LocalFileManager {
     // 5. load image in document
     static func loadImage(imageName: String) -> UIImage? {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        let url = paths[0].appendingPathComponent(imageName)
-        
+        let url = paths[0].appendingPathComponent(imageName) // -> output type URL , url.path convert type URL -> String
         return UIImage(contentsOfFile: url.path)
     }
     

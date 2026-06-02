@@ -1,314 +1,290 @@
 //
-//  Canvas.swift
+//  CanvasModel.swift
 //  Test1
 //
 //  Created by Hai Nam on 14/5/26.
 //
 
 import Foundation
-import Combine
 import SwiftUI
 import UIKit
 
+// set default size canvas
+let CanvasSize = CGSize(width: 3000, height: 3000)
+
 @Observable
 class CanvasModel {
-    // state project list
+    // state selected
     var projectDetail: ProjectDetail?
+    
     // state selected
     var selectedPhotoIndex: Int?
     
     // Cache lưu trữ ảnh local tải từ máy
     var localImages: [String: UIImage] = [:]
-    
-    // State cho Zoom & Move toàn bộ Canvas
-    var canvasScale: CGFloat = 1.0
-    var canvasOffset: CGSize = .zero
-    
-    // Tâm vùng Canvas trên màn hình
-    var canvasAreaCenter: CGPoint = .zero
+
+    // @ObservationIgnored để tránh trigger re-render khi set
+    @ObservationIgnored weak var scrollView: UIScrollView?
+    @ObservationIgnored weak var canvasContentView: UIView?
     
     // api
     private let apiService = APIService()
-    
-    // load image
+
+    // MARK: - Load Image
+
     func loadImage(urlString: String) async throws -> Image {
-        // 1. Tạo tên file an toàn cho ảnh từ mạng
+        // 1.encode string thành dạng an toàn không có character special
         let safeImageName = urlString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? UUID().uuidString
         
-        // 2. Thử load ảnh từ local trước (nếu đã từng tải)
+        // 2. kiểm tra bộ nhớ trong cache local
         if let savedImage = LocalFileManager.loadImage(imageName: safeImageName) {
-            await MainActor.run {
-                self.localImages[urlString] = savedImage
-            }
+            await MainActor.run { self.localImages[urlString] = savedImage }
             return Image(uiImage: savedImage)
         }
         
-        // 3. Nếu chưa có local, tiến hành tải từ mạng
+        // 3. nếu trong cache local chưa có thì dowload từ url
         guard let url = URL(string: urlString) else {
             throw URLError(.badURL)
         }
-
-        let (data, _) = try await URLSession.shared.data(from: url)
-
+        
+        // 4. data
+        let (data, _) = try await URLSession.shared.data(from: url) // dowload
         guard let image = UIImage(data: data) else {
             throw URLError(.cannotDecodeContentData)
         }
         
-        // 4. Lưu ảnh vừa tải xuống
+        // 5. save vào cache local
         LocalFileManager.saveImage(image: image, imageName: safeImageName)
-        
-        // Cache ảnh tải từ server vào thư viện localImages để dùng cho lúc Save ảnh
-        await MainActor.run {
-            self.localImages[urlString] = image
-        }
-
+        await MainActor.run { self.localImages[urlString] = image } // update vào
         return Image(uiImage: image)
     }
-    
-    // 1. fetch
+
+    // MARK: - Fetch
+
     func fetchData(_ id: Int) async throws {
         
-        // A: check data ở local trước
+        // 1. check data project trong cache local
         if let localProject = LocalFileManager.loadProject(projectId: id) {
             self.projectDetail = localProject
-            
+            // loop image
             for photo in localProject.photos {
-                // Nếu url không phải link web (không bắt đầu bằng http) thì nó chính là tên file ảnh local
+                
+                // A. Image từ libary photo
                 if !photo.url.hasPrefix("http") {
-                    if let savedImage = LocalFileManager.loadImage(imageName: photo.url) {
-                        self.localImages[photo.url] = savedImage
+                    if let img = LocalFileManager.loadImage(imageName: photo.url) {
+                        self.localImages[photo.url] = img
                     }
+                    
+                // B. Image dowload từ url
                 } else {
-                    // Check xem ảnh web này đã có cache trong máy chưa
-                    let safeImageName = photo.url.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
-                    if let savedImage = LocalFileManager.loadImage(imageName: safeImageName) {
-                        self.localImages[photo.url] = savedImage
+                    // safe encode url
+                    let safe = photo.url.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+                    if let img = LocalFileManager.loadImage(imageName: safe) {
+                        self.localImages[photo.url] = img // save img cache
                     }
                 }
             }
-            
-            if !localProject.photos.isEmpty {
-                return
-            }
+            // check project isEmty image
+            if !localProject.photos.isEmpty { return }
         }
         
-        // B: Nếu A chưa có file , lấy data từ server
+        // 2. dowload image từ url
         do {
             let data = try await apiService.postAPI(projectId: id)
             self.projectDetail = data
             
-            // save vào local
+            // load data image -> local cache
             LocalFileManager.saveProject(project: data)
             
-            // 
-            for photo in data.photos {
-                if photo.url.hasPrefix("http") {
-                    let safeImageName = photo.url.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
-                    if let savedImage = LocalFileManager.loadImage(imageName: safeImageName) {
-                        self.localImages[photo.url] = savedImage
-                    }
+            // loop image
+            for photo in data.photos where photo.url.hasPrefix("http") {
+                // safe encode url
+                let safe = photo.url.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+                //save image
+                if let img = LocalFileManager.loadImage(imageName: safe) {
+                    self.localImages[photo.url] = img
                 }
             }
         } catch {
-            let fallbackProject = ProjectDetail(name: "new project", id: id, photos: [])
-            self.projectDetail = fallbackProject
-            LocalFileManager.saveProject(project: fallbackProject)
+            throw error
         }
     }
-    
-    // ===================================== logic feature =======================================
-    
-    // 2. add photo
-    func addPhoto(url: String, imgW: CGFloat, imgH: CGFloat , canvasSize: CGSize) {
+
+    // MARK: - Add Photo
+
+    func addPhoto(url: String, baseSize: CGSize) {
+        let center: CGPoint
         
-        // center canvas
-        let screenCenterX = Double(canvasSize.width) / 2
-        let screenCenterY = Double(canvasSize.height) / 2
+        // 1. Tìm coordinate để add new image
         
-        // Map tâm màn hình về tọa độ của Canvas (khử offset và scale)
-        let canvasCenterX = screenCenterX - Double(self.canvasOffset.width / self.canvasScale)
-        let canvasCenterY = screenCenterY - Double(self.canvasOffset.height / self.canvasScale)
-        
-        // Tọa độ TÂM của ảnh
-        let x = canvasCenterX
-        let y = canvasCenterY
-        
+        // check scrollview
+        if let sv = scrollView {
+            // -------------------------------------------------------------------------------------------------------------------
+            // - sv.contentOffset: Vị trí cuộn hiện tại .
+            // - sv.bounds.width / 2: Cộng thêm nửa chiều rộng để ra tới điểm chính giữa màn hình.
+            // - Chia cho zoomScale : Để loại bỏ sự phóng to/thu nhỏ, đưa toạ độ màn hình về đúng chuẩn toạ độ thực tế của Canvas.
+            // -------------------------------------------------------------------------------------------------------------------
+
+            center = CGPoint(
+                x: (sv.contentOffset.x + sv.bounds.width  / 2) / sv.zoomScale,
+                y: (sv.contentOffset.y + sv.bounds.height / 2) / sv.zoomScale
+            )
+        }
+        else {
+            center = CGPoint(x: CanvasSize.width / 2, y: CanvasSize.height / 2)
+        }
+        //
         let newPhoto = Photo(
             url: url,
-            frame: Frame(
-                x: x,
-                y: y,
-                width: imgW,
-                height: imgH
+            transform: PhotoTransform(
+                center:   center,
+                scale:    1.0,
+                rotation: 0.0,
+                baseSize: baseSize
             )
         )
-        
-        self.projectDetail?.photos.append(newPhoto)
+        projectDetail?.photos.append(newPhoto)
     }
-    
-    // 3. delete photo
+
+    // MARK: Transform Update
+
+    func updatePhotoTransform(index: Int, transform: PhotoTransform) {
+        guard let photos = projectDetail?.photos, index >= 0, index < photos.count else { return }
+        projectDetail?.photos[index].transform = transform
+    }
+
+    // MARK: - Delete Photo
+
     func deletePhoto() {
+        guard let idx = selectedPhotoIndex,
+              let project = projectDetail,
+              idx >= 0, idx < project.photos.count else { return }
         
-         // check xem co img dang dc chon
-        guard let selectPhotoIdx = selectedPhotoIndex else {
-            return
+        // get url
+        let url = project.photos[idx].url
+        
+        // xoá khỏi ui và ram
+        projectDetail?.photos.remove(at: idx)
+        localImages.removeValue(forKey: url)
+        
+        // xoá trong ổ cứng điện thoại
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        if url.hasPrefix("http") {
+            let safe = url.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+            try? FileManager.default.removeItem(at: paths[0].appendingPathComponent(safe))
+        } else {
+            try? FileManager.default.removeItem(at: paths[0].appendingPathComponent(url))
         }
         
-        if let project = self.projectDetail {
-            let photoLength = project.photos.count
-            
-            if selectPhotoIdx >= 0 && selectPhotoIdx < photoLength {
-                
-                // Lấy url
-                let photoUrl = project.photos[selectPhotoIdx].url
-                
-                // delete
-                self.projectDetail?.photos.remove(at: selectPhotoIdx)
-                
-                // Xoá ảnh khỏi ổ cứng
-                self.localImages.removeValue(forKey: photoUrl)
-                let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-                
-                if !photoUrl.hasPrefix("http") {
-                    // Ảnh local
-                    let fileUrl = paths[0].appendingPathComponent(photoUrl)
-                    try? FileManager.default.removeItem(at: fileUrl)
-                } else {
-                    let safeImageName = photoUrl.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
-                    let fileUrl = paths[0].appendingPathComponent(safeImageName)
-                    try? FileManager.default.removeItem(at: fileUrl)
-                }
-                
-                // go~ bo trang thai dang select
-                self.selectedPhotoIndex = nil
-                
-            }
-        }
+        // reset
+        selectedPhotoIndex = nil
     }
-    
-    // 4. Save & back
+
+    // MARK: - Save
+
     func saveChanges() {
-        if let project = self.projectDetail {
+        if let project = projectDetail {
             LocalFileManager.saveProject(project: project)
         }
     }
-    
-    // 5. render canvas
-    func renderCanvasImage(canvasSize: CGSize) -> UIImage? {
-        // init render
-        let render = UIGraphicsImageRenderer(size: canvasSize)
-        
-        guard let photos = self.projectDetail?.photos else { return nil }
-        
-        // vẽ để tạo ảnh
-        let image = render.image { context in
-            // vẽ gì trong này đều sẽ thành UIImage
-            
-            /*
-             Hàm vẽ mặc định của apple chỉ cho phép vẽ ảnh theo phương thẳng đứng
-             Cách duy nhất trong iOS để vẽ một bức ảnh nằm nghiêng (ví dụ nghiêng 45 độ) là  phải cầm cả tờ giấy xoay đi 45 độ, sau đó vẽ thẳng lên tờ giấy đã nghiêng đó.
-             -> phải có .cgContext để có thể xoay được canvas (Apple chỉ hỗ trợ cho cấp độ .cgContext)
-             */
-            let cgContext = context.cgContext
-            // 1. fill background canvas
+
+    // MARK: - Draw
+    func renderCanvasImage() -> UIImage? {
+        let renderer = UIGraphicsImageRenderer(size: CanvasSize)
+        guard let photos = projectDetail?.photos else { return nil }
+
+        return renderer.image { ctx in
+            let cgCtx = ctx.cgContext
             UIColor.white.setFill()
-            cgContext.fill(CGRect(origin: .zero, size: canvasSize))
-            
-            // render image
+            cgCtx.fill(CGRect(origin: .zero, size: CanvasSize))
+
             for photo in photos {
-                // chỉ vẽ nếu img đã được load thành công
-                
-                guard let img = self.localImages[photo.url] else { continue }
-                
-                // save toạ độ hiện tại vào stack
-                cgContext.saveGState()
-                
-                let centerX = CGFloat(photo.frame.x)
-                let centerY = CGFloat(photo.frame.y)
-                let w = CGFloat(photo.frame.width)
-                let h = CGFloat(photo.frame.height)
-                
-                // A. Dịch hệ toạ độ về đúng tâm của ảnh
-                cgContext.translateBy(x: centerX, y: centerY)
-                
-                // B. Xoay nghiêng hệ trục toạ độ
-                let radian = CGFloat(photo.rotation ?? 0) * .pi / 180.0
-                cgContext.rotate(by: radian)
-                
-                // C. vẽ ảnh
-                let drawRect = CGRect(x: -w/2, y: -h/2, width: w, height: h)
-                img.draw(in: drawRect)
-                
-                // reset về toạ độ gốc để vẽ img tiếp
-                cgContext.restoreGState()
+                guard let img = localImages[photo.url] else { continue }
+                let t = photo.transform
+                let rw = t.baseSize.width  * t.scale
+                let rh = t.baseSize.height * t.scale
+
+                cgCtx.saveGState()
+                cgCtx.translateBy(x: t.center.x, y: t.center.y)
+                cgCtx.rotate(by: CGFloat(t.rotation))
+                // draw
+                img.draw(in: CGRect(x: -rw / 2, y: -rh / 2, width: rw, height: rh))
+                // reset
+                cgCtx.restoreGState()
             }
         }
-        
-        return image
+    }
+
+    // MARK: - Opacity
+
+    func updateOpacity(index: Int, opacity: Double) {
+        guard let photos = projectDetail?.photos,
+              index >= 0, index < photos.count else { return }
+        projectDetail?.photos[index].opacity = opacity
     }
     
     
+    // MARK: Camera Focus
     
-    // ==================================== logic gestures =======================================
-    
-    // 6. drag
-    func panPhoto(index: Int, delta: CGSize) {
-        self.projectDetail?.photos[index].frame.x += Double(delta.width)
-        self.projectDetail?.photos[index].frame.y += Double(delta.height)
-    }
-    
-    // 7. zoom
-    func pinchPhoto(index: Int, scale: Double, screenFocalPoint: CGPoint) {
-        guard var photo = self.projectDetail?.photos[index] else { return }
+    func focusCamera() {
+        /*
+         Tìm trung tâm của của toàn bộ canvas -> đưa camera tới tâm của canvas
+         
+         1. Tìm bounding của các images
+         
+         2. Lấy tâm bounding của các imgs
+         
+         3. Rời camera về tâm bounding các imgs
+         
+         4. Clamp
+         */
         
-        // 1. ngón tay
-        let focalX = canvasAreaCenter.x + (screenFocalPoint.x - canvasAreaCenter.x - canvasOffset.width) / canvasScale
-        let focalY = canvasAreaCenter.y + (screenFocalPoint.y - canvasAreaCenter.y - canvasOffset.height) / canvasScale
+        guard let sv = scrollView , let cv = canvasContentView else { return }
         
-        // 2. Dịch chuyển tâm ảnh để điểm dưới ngón tay đứng yên
-        //    Công thức: new_center = focalPoint + (old_center - focalPoint) * scaleDelta
-        photo.frame.x = focalX + (photo.frame.x - focalX) * scale
-        photo.frame.y = focalY + (photo.frame.y - focalY) * scale
-        
-        // 3. Scale kích thước ảnh
-        photo.frame.width *= scale
-        photo.frame.height *= scale
-        
-        self.projectDetail?.photos[index] = photo
-    }
-    
-    // 8. rotate
-    func rotatePhotoDelta(index: Int, angleRadians: Double, screenFocalPoint: CGPoint) {
-        guard var photo = self.projectDetail?.photos[index] else { return }
-        
-        let current = photo.rotation ?? 0
-        let degrees = angleRadians * 180.0 / .pi
-        photo.rotation = current + degrees
-        
-        let focalX = canvasAreaCenter.x + (screenFocalPoint.x - canvasAreaCenter.x - canvasOffset.width) / canvasScale
-        let focalY = canvasAreaCenter.y + (screenFocalPoint.y - canvasAreaCenter.y - canvasOffset.height) / canvasScale
-        
-        let dx = photo.frame.x - focalX
-        let dy = photo.frame.y - focalY
-        
-        let cosA = cos(angleRadians)
-        let sinA = sin(angleRadians)
-        
-        photo.frame.x = focalX + dx * cosA - dy * sinA
-        photo.frame.y = focalY + dx * sinA + dy * cosA
-        
-        self.projectDetail?.photos[index] = photo
-    }
-    
-    
-    // =============================== test 2 ====================================
-    // update Opacity
-    func updateOpacity(index: Int , opacity: Double) {
-        // check index
-        guard let photos = self.projectDetail?.photos,
-              index >= 0,
-              index < photos.count else { return }
-        
-        self.projectDetail?.photos[index].opacity = opacity
+        // 1. tìm bounding của các image
+        if let photos = projectDetail?.photos, !photos.isEmpty {
+            var minX: Double = Double.greatestFiniteMagnitude
+            var minY: Double = Double.greatestFiniteMagnitude
+            
+            var maxX: Double = -Double.greatestFiniteMagnitude
+            var maxY: Double = -Double.greatestFiniteMagnitude
+            
+            for photo in photos {
+                let frame = photo.frame
+                // so sánh tìm ra img đứng xa nhất về 4 hướng
+                
+                // 1. tìm left
+                if frame.x < minX { minX = frame.x }
+                // 2. tìm right
+                if frame.x + frame.width > maxX { maxX = frame.x + frame.width }
+                // 3. tìm top
+                if frame.y < minY { minY = frame.y }
+                // 4. tìm bottom
+                if frame.y + frame.height > maxY { maxY = frame.y + frame.height }
+                
+            }
+            
+            // 2. tìm center bounding
+            let boundingCenterX = minX + (maxX - minX) / 2
+            let boundingCenterY = minY + (maxY - minY) / 2
+            
+            // 3. Rời camera
+            
+            // lấy center trừ lùi lại 1 nửa chiều rộng/chiều cao của điện thoại.
+            let offsetX = boundingCenterX -  sv.bounds.width / 2
+            let offsetY = boundingCenterY - sv.bounds.height / 2
+            
+            // 4. clamp
+            let maxOffsetX = max(0 , min(offsetX , cv.frame.width - sv.bounds.width))
+            let maxOffsetY = max(0 , min(offsetY , cv.frame.height - sv.bounds.height))
+            
+            // set camera
+            sv.setContentOffset(CGPoint(x:maxOffsetX , y: maxOffsetY), animated: true)
+        }
+        else {
+            let offsetX = (cv.frame.width - sv.bounds.width) / 2
+            let offsetY = (cv.frame.height - sv.bounds.height) / 2
+            sv.setContentOffset(CGPoint(x: offsetX, y: offsetY), animated: true) // move về center CANVAS
+        }
     }
 }
