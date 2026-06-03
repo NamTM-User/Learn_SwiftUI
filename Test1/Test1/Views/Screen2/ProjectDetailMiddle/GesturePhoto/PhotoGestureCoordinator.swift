@@ -18,7 +18,7 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
     weak var pinchGesture: UIPinchGestureRecognizer?
     weak var rotateGesture: UIRotationGestureRecognizer?
     
-    // Quản lý các gesture đang active , sẽ chứa các gesture đang ở trạng thái .began hoặc .changed
+    // quản lý các gesture đang active , sẽ chứa các gesture đang ở trạng thái .began hoặc .changed
     private var activeGestures: Set<UIGestureRecognizer> = []
     
     // state update gesture

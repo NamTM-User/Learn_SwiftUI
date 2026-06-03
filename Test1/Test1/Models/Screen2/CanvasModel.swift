@@ -190,13 +190,25 @@ class CanvasModel {
 
     // MARK: - Draw
     func renderCanvasImage() -> UIImage? {
-        let renderer = UIGraphicsImageRenderer(size: CanvasSize)
+        guard let sv = scrollView, let cv = canvasContentView else { return nil }
+        
+        // size của ảnh xuất ra đúng bằng khung hình ScrollView trên màn hình
+        let renderer = UIGraphicsImageRenderer(size: sv.bounds.size)
         guard let photos = projectDetail?.photos else { return nil }
 
         return renderer.image { ctx in
             let cgCtx = ctx.cgContext
+            
             UIColor.white.setFill()
-            cgCtx.fill(CGRect(origin: .zero, size: CanvasSize))
+            cgCtx.fill(CGRect(origin: .zero, size: sv.bounds.size))
+            
+            // lấy thông số camera hiện tại
+            let scale = sv.zoomScale
+            let offset = sv.contentOffset
+            let cvOrigin = cv.frame.origin
+            
+            cgCtx.translateBy(x: -offset.x + cvOrigin.x, y: -offset.y + cvOrigin.y)
+            cgCtx.scaleBy(x: scale, y: scale)
 
             for photo in photos {
                 guard let img = localImages[photo.url] else { continue }
@@ -207,8 +219,13 @@ class CanvasModel {
                 cgCtx.saveGState()
                 cgCtx.translateBy(x: t.center.x, y: t.center.y)
                 cgCtx.rotate(by: CGFloat(t.rotation))
-                // draw
-                img.draw(in: CGRect(x: -rw / 2, y: -rh / 2, width: rw, height: rh))
+                
+                // render image
+                img.draw(
+                    in: CGRect(x: -rw / 2, y: -rh / 2, width: rw, height: rh),
+                    blendMode: .normal,
+                    alpha: CGFloat(photo.opacity)
+                )
                 // reset
                 cgCtx.restoreGState()
             }
