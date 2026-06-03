@@ -10,7 +10,7 @@ import SwiftUI
 import UIKit
 
 // set default size canvas
-let CanvasSize = CGSize(width: 3000, height: 3000)
+let CanvasSize = CGSize(width: 500, height: 500)
 
 @Observable
 class CanvasModel {
@@ -26,7 +26,10 @@ class CanvasModel {
     // @ObservationIgnored để tránh trigger re-render khi set
     @ObservationIgnored weak var scrollView: UIScrollView?
     @ObservationIgnored weak var canvasContentView: UIView?
-    
+
+    // Lưu lại zoom scale hiện tại để bù trừ kích thước cho overlay
+    var cameraZoom: CGFloat = 1.0
+
     // api
     private let apiService = APIService()
 

@@ -1,9 +1,5 @@
 //
 //  ProjectDetailMiddle.swift
-//  Test1
-//
-//  ProjectDetailMiddle.swift
-//  Test1
 //
 //  Created by Hai Nam on 15/5/26.
 //
@@ -14,23 +10,23 @@ import SwiftUI
 
 struct ProjectDetailMiddle: View {
     @Environment(CanvasModel.self) private var canvasModel
-    
+
     var body: some View {
         GeometryReader { geo in
             CanvasScrollView(
                 size: geo.size,
                 onSetup: { sv, cv in
-                    canvasModel.scrollView       = sv
+                    canvasModel.scrollView        = sv
                     canvasModel.canvasContentView = cv
-                    
-                    Task {
-                        await MainActor.run {
-                            canvasModel.focusCamera()
-                        }
+                    Task { @MainActor in
+                        canvasModel.focusCamera()
                     }
                 },
+                onZoom: { zoomScale in
+                    canvasModel.cameraZoom = zoomScale
+                },
                 viewSwiftUI: AnyView(
-                    PhotoLayerView()
+                    CanvasLayerView()
                         .environment(canvasModel)
                 )
             )
@@ -38,20 +34,38 @@ struct ProjectDetailMiddle: View {
     }
 }
 
-// MARK: - Photo Layer
+// MARK: - Canvas Layer View
+// Gộp cả 2 layer vào 1 UIHostingController duy nhất
+// SwiftUI xử lý hit-testing đúng trong cùng 1 hosting
 
-struct PhotoLayerView: View {
-    @Environment(CanvasModel.self) private var canvasModel
-    
+struct CanvasLayerView: View {
     var body: some View {
         ZStack {
-            // Background: tap để bỏ chọn ảnh
+            // Layer 1: Photos + canvas background — clip bằng SwiftUI .clipped()
+            PhotoContentLayer()
+                .frame(width: CanvasSize.width, height: CanvasSize.height)
+                .clipped()
+
+            // Layer 2: Selection overlay — KHÔNG clip, vẽ ra ngoài canvas được
+            OverlayLayerView()
+        }
+        .frame(width: CanvasSize.width, height: CanvasSize.height)
+    }
+}
+
+// MARK: - Photo Content Layer
+
+struct PhotoContentLayer: View {
+    @Environment(CanvasModel.self) private var canvasModel
+
+    var body: some View {
+        ZStack {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture {
                     canvasModel.selectedPhotoIndex = nil
                 }
-            
+
             // Render từng ảnh
             if let detail = canvasModel.projectDetail {
                 ForEach(Array(detail.photos.enumerated()), id: \.element.id) { index, photo in
@@ -68,21 +82,28 @@ struct PhotoLayerView: View {
                     )
                     .zIndex(isSelected ? 1 : 0)
                 }
-                
-                // Selection overlay (canvas coords)
-                if let idx = canvasModel.selectedPhotoIndex,
-                   idx >= 0, idx < detail.photos.count {
-                    PhotoSelectionOverlay(
-                        photo: detail.photos[idx],
-                        onDelete: { canvasModel.deletePhoto() }
-                    )
-                    .zIndex(2)
-                    .allowsHitTesting(true)
-                }
             }
         }
-        .frame(width: CanvasSize.width, height: CanvasSize.height)
     }
 }
 
+// MARK: - Overlay Layer 
 
+struct OverlayLayerView: View {
+    @Environment(CanvasModel.self) private var canvasModel
+
+    var body: some View {
+        Group {
+            if let idx = canvasModel.selectedPhotoIndex,
+               let detail = canvasModel.projectDetail,
+               idx >= 0, idx < detail.photos.count {
+                PhotoSelectionOverlay(
+                    photo: detail.photos[idx],
+                    zoomScale: canvasModel.cameraZoom,
+                    onDelete: { canvasModel.deletePhoto() }
+                )
+                .zIndex(2)
+            }
+        }
+    }
+}

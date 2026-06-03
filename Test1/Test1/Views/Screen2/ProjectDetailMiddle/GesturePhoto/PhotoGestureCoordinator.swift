@@ -150,7 +150,7 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
             pinchGesture?.scale = 1.0
             rotateGesture?.rotation = 0.0
             
-            hasChanges = true // chek changes = true
+            hasChanges = true // checkk changes = true
         }
         
         // update models
@@ -163,10 +163,9 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
     
     // 2. Gom luồng tính toán Transform
     private func scheduleUpdate() {
-        // Kiểm tra cờ isUpdate, nếu chưa có lệnh update nào được đặt thì mới chạy
         if !isUpdate {
             isUpdate = true
-                DispatchQueue.main.async { [weak self] in
+            Task { @MainActor [weak self] in
                 guard let self = self else { return }
                 self.isUpdate = false
                 self.updateImagePosition()

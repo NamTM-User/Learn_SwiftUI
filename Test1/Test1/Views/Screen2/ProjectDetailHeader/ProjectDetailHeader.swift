@@ -14,7 +14,7 @@ struct CanvasShareItem: Transferable {
     static var transferRepresentation: some TransferRepresentation {
         DataRepresentation(exportedContentType: .jpeg) { item in
             guard let img = await item.renderImage(),
-                  let data = img.jpegData(compressionQuality: 0.85)
+                  let data = img.jpegData(compressionQuality: 0.9)
             else {
                 return Data()
             }

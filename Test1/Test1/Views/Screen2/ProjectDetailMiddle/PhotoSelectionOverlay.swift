@@ -7,51 +7,63 @@
 
 import SwiftUI
 
+/*
+ PhotoSelectionOverlay nằm trong overlayHosting.view (UIHostingController) —
+ một UIView SIBLING của contentHosting.view bên trong containerView.
+
+ - overlayHosting.view.clipsToBounds = false  → overlay vẽ ra ngoài canvas
+ - containerView.clipsToBounds = false         → overlay không bị clip bởi container
+ - Cả containerView đều zoom/scroll cùng lúc  → không cần coordinate conversion
+ - Vị trí dùng canvas coordinates như bình thường, KHÔNG giật
+
+ Reactive update:
+ - Khi photo.transform thay đổi (gesture) → body re-render → vị trí cập nhật ✓
+ - Khi scroll/zoom → UIKit di chuyển toàn bộ containerView → không cần re-render ✓
+*/
+
 struct PhotoSelectionOverlay: View {
     let photo: Photo
+    let zoomScale: CGFloat
     var onDelete: () -> Void
 
     var body: some View {
         let transform = photo.transform
-        // image sau khi scale
-        let halfWidth = (transform.baseSize.width  * transform.scale) / 2
+        let halfWidth  = (transform.baseSize.width  * transform.scale) / 2
         let halfHeight = (transform.baseSize.height * transform.scale) / 2
 
-        // dot
-        let topLeft = calculateCanvasPoint(centerX: transform.center.x, centerY: transform.center.y, offsetX: -halfWidth, offsetY: -halfHeight, angle: transform.rotation)
-        let topRight = calculateCanvasPoint(centerX: transform.center.x, centerY: transform.center.y, offsetX:  halfWidth, offsetY: -halfHeight, angle: transform.rotation)
-        let bottomLeft = calculateCanvasPoint(centerX: transform.center.x, centerY: transform.center.y, offsetX: -halfWidth, offsetY:  halfHeight, angle: transform.rotation)
-        let bottomRight = calculateCanvasPoint(centerX: transform.center.x, centerY: transform.center.y, offsetX:  halfWidth, offsetY:  halfHeight, angle: transform.rotation)
-
-        // button delete
-        let deleteButton = calculateCanvasPoint(centerX: transform.center.x, centerY: transform.center.y, offsetX: 0, offsetY: -halfHeight - 30, angle: transform.rotation)
+        // Tính 4 góc + vị trí nút delete trong canvas coordinate space
+        let topLeft     = canvasPoint(center: transform.center, dx: -halfWidth, dy: -halfHeight, angle: transform.rotation)
+        let topRight    = canvasPoint(center: transform.center, dx:  halfWidth, dy: -halfHeight, angle: transform.rotation)
+        let bottomLeft  = canvasPoint(center: transform.center, dx: -halfWidth, dy:  halfHeight, angle: transform.rotation)
+        let bottomRight = canvasPoint(center: transform.center, dx:  halfWidth, dy:  halfHeight, angle: transform.rotation)
+        let deletePos   = canvasPoint(center: transform.center, dx: 0,          dy: -halfHeight - 30, angle: transform.rotation)
 
         ZStack {
             SelectionBorderView(
                 topLeft: topLeft, topRight: topRight,
-                bottomLeft: bottomLeft, bottomRight: bottomRight
+                bottomLeft: bottomLeft, bottomRight: bottomRight,
+                zoomScale: zoomScale
             )
 
-            ControlDot(position: topLeft)
-            ControlDot(position: topRight)
-            ControlDot(position: bottomLeft)
-            ControlDot(position: bottomRight)
+            ControlDot(position: topLeft, zoomScale: zoomScale)
+            ControlDot(position: topRight, zoomScale: zoomScale)
+            ControlDot(position: bottomLeft, zoomScale: zoomScale)
+            ControlDot(position: bottomRight, zoomScale: zoomScale)
 
             DeleteButtonView(
-                position: deleteButton,
+                position: deletePos,
                 angle: Angle(radians: transform.rotation),
+                zoomScale: zoomScale,
                 action: onDelete
             )
         }
         .frame(width: CanvasSize.width, height: CanvasSize.height)
-        .allowsHitTesting(true)
     }
 
-    
-    private func calculateCanvasPoint(centerX: Double, centerY: Double, offsetX: Double, offsetY: Double, angle: Double) -> CGPoint {
-        let transform = CGAffineTransform(translationX: centerX, y: centerY)
-            .rotated(by: angle)
-        return CGPoint(x: offsetX, y: offsetY).applying(transform)
+    /// Tính điểm trong canvas space sau khi áp dụng offset + rotation quanh center
+    private func canvasPoint(center: CGPoint, dx: Double, dy: Double, angle: Double) -> CGPoint {
+        let t = CGAffineTransform(translationX: center.x, y: center.y).rotated(by: angle)
+        return CGPoint(x: dx, y: dy).applying(t)
     }
 }
 
@@ -59,12 +71,15 @@ struct PhotoSelectionOverlay: View {
 
 struct ControlDot: View {
     let position: CGPoint
+    let zoomScale: CGFloat
+    
     var body: some View {
         Circle()
             .fill(Color.white)
             .shadow(radius: 2)
             .frame(width: 14, height: 14)
             .overlay(Circle().stroke(Color.white, lineWidth: 2))
+            .scaleEffect(1.0 / max(zoomScale, 0.001))
             .position(position)
             .allowsHitTesting(false)
     }
@@ -75,6 +90,7 @@ struct SelectionBorderView: View {
     let topRight: CGPoint
     let bottomLeft: CGPoint
     let bottomRight: CGPoint
+    let zoomScale: CGFloat
 
     var body: some View {
         Path { path in
@@ -84,7 +100,7 @@ struct SelectionBorderView: View {
             path.addLine(to: bottomLeft)
             path.closeSubpath()
         }
-        .stroke(Color.blue, style: StrokeStyle(lineWidth: 2))
+        .stroke(Color.blue, style: StrokeStyle(lineWidth: 2.0 / max(zoomScale, 0.001)))
         .allowsHitTesting(false)
     }
 }
@@ -92,6 +108,7 @@ struct SelectionBorderView: View {
 struct DeleteButtonView: View {
     let position: CGPoint
     let angle: Angle
+    let zoomScale: CGFloat
     let action: () -> Void
 
     var body: some View {
@@ -106,6 +123,7 @@ struct DeleteButtonView: View {
                     .cornerRadius(1.5)
             }
         }
+        .scaleEffect(1.0 / max(zoomScale, 0.001))
         .rotationEffect(angle)
         .position(position)
     }

@@ -17,87 +17,85 @@ import SwiftUI
  
  */
 
-
 struct CanvasScrollView: UIViewRepresentable {
     var size: CGSize
-    // Hàm callback để truyền scrollView ngược ra ngoài cho ProjectDetailMiddle
     var onSetup: (UIScrollView, UIView) -> Void
-    
-    // property view SwiftUI
+    var onZoom: (CGFloat) -> Void
     let viewSwiftUI: AnyView
-    
-    // class Coordinator ( listen event UIScrollView ), Coordinator để lắng nghe share state data giữa swiftui và uikit
+
+    // MARK: - Coordinator
+
     class Coordinator: NSObject, UIScrollViewDelegate {
         var contentView: UIView?
-        
-        // 1. method thông báo UIScrollView view nào sẽ zoom/scale
+        var didLoad = false
+        var onZoom: ((CGFloat) -> Void)?
+
         func viewForZooming(in scrollView: UIScrollView) -> UIView? {
             return contentView
         }
-        
-        // 2. handle changed zoom , căn giữa khi zoom out
+
+        // Căn giữa content khi zoom out
         func scrollViewDidZoom(_ scrollView: UIScrollView) {
+            centerContent(in: scrollView)
+            onZoom?(scrollView.zoomScale)
+        }
+
+        func centerContent(in scrollView: UIScrollView) {
             guard let cv = contentView else { return }
-            
             let boundsSize = scrollView.bounds.size
             let frame = cv.frame
-            
-            let offsetX = max((boundsSize.width - frame.width) * 0.5, 0)
+            let offsetX = max((boundsSize.width  - frame.width)  * 0.5, 0)
             let offsetY = max((boundsSize.height - frame.height) * 0.5, 0)
-            
             cv.center = CGPoint(
-                x: frame.width * 0.5 + offsetX,
+                x: frame.width  * 0.5 + offsetX,
                 y: frame.height * 0.5 + offsetY
             )
         }
+
+        // Chạy 1 lần sau khi layout hoàn tất
+        func initOnce(in scrollView: UIScrollView) {
+            guard !didLoad else { return }
+            didLoad = true
+            centerContent(in: scrollView)
+        }
     }
-    
-    
-    
-    func makeCoordinator() -> Coordinator {
-        return Coordinator()
-    }
-    
-    // A. init UIView
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    // A. Khởi tạo UIScrollView
     func makeUIView(context: Context) -> UIScrollView {
         let scrollView = UIScrollView()
-        scrollView.delegate = context.coordinator // gán object nhận cho ScrollView
-        
-        // 1. thanh scroll dọc , ngang
-        scrollView.showsVerticalScrollIndicator = false ; scrollView.showsHorizontalScrollIndicator = false
-        // 2. effect đàn hồi
-        scrollView.bouncesZoom = true
-        // 3. chặn hành vi lấn UI mặc định của UI có sẵn ScrollView
+        context.coordinator.onZoom = onZoom
+        scrollView.delegate = context.coordinator
+
+        scrollView.showsVerticalScrollIndicator   = false
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.bouncesZoom                    = true
         scrollView.contentInsetAdjustmentBehavior = .never
-        // 4. background
-        scrollView.backgroundColor = UIColor(red: 0.9, green: 0.95, blue: 1.0, alpha: 1) // alpha la` opacity
-        // 5. clipped()
-        scrollView.clipsToBounds = true
-        // 6. giới hạn zoom
+        scrollView.backgroundColor = UIColor(red: 0.9, green: 0.95, blue: 1.0, alpha: 1)
+        scrollView.clipsToBounds   = true
         scrollView.minimumZoomScale = 0.1
         scrollView.maximumZoomScale = 5.0
-        
+
         let hosting = UIHostingController(rootView: viewSwiftUI)
-        hosting.view.backgroundColor = .yellow 
-        
-        hosting.view.frame.size = CanvasSize
-        
-        // subview
+        hosting.view.backgroundColor = .yellow
+        hosting.view.frame.size      = CanvasSize
+        hosting.view.clipsToBounds   = false
+
         scrollView.addSubview(hosting.view)
         scrollView.contentSize = CanvasSize
-        
-        // Gán coordinator để listen event zoom
         context.coordinator.contentView = hosting.view
-        
-        // Gọi callback báo ra ngoài
+
         onSetup(scrollView, hosting.view)
-        
         return scrollView
-        
     }
-    // B.update khi state SwiftUI đổi
-    func updateUIView(_ scrollView: UIScrollView , context: Context) {
-        // ........
+
+    // B. Update khi SwiftUI state đổi
+    func updateUIView(_ scrollView: UIScrollView, context: Context) {
+        context.coordinator.onZoom = onZoom
+        DispatchQueue.main.async {
+            context.coordinator.initOnce(in: scrollView)
+        }
     }
-    
 }
+

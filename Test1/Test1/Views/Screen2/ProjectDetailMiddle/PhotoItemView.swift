@@ -52,7 +52,7 @@ struct PhotoItemView: View {
         )
         .scaleEffect(transform.scale)
         .rotationEffect(.radians(transform.rotation))
-        .position(transform.center)
         .onTapGesture { onTap() }
+        .position(transform.center)
     }
 }
