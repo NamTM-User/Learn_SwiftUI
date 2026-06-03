@@ -146,7 +146,7 @@ class CanvasModel {
         projectDetail?.photos.append(newPhoto)
     }
 
-    // MARK: Transform Update
+    // MARK: - Transform Update
 
     func updatePhotoTransform(index: Int, transform: PhotoTransform) {
         guard let photos = projectDetail?.photos, index >= 0, index < photos.count else { return }

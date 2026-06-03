@@ -1,224 +1,227 @@
 //
 //  PhotoGestureCoordinator.swift
 //  Test1
-//
-//  Created by Hai Nam on 2/6/26.
-//
+
 
 import Foundation
 import UIKit
 import SwiftUI
 
-// State gesture
 struct GestureStateImage {
-    let transform: PhotoTransform // trạng thái của img (drag/zoom) ngay lúc vừa chạm vào
-    let focalPoint: CGPoint // Toạ độ giữa 2 ngón tay
-    let isMultiTouch: Bool // property check đang chạm 1 ngón hay 2 ngón
+    let transform: PhotoTransform
+    // state hiện tại là 1 ngón hay nhiều ngón
+    let isMultiTouch: Bool
 }
 
-
-// MARK: Gesture Coordinator ( Xử lý logic gesture )
+// MARK: -  Gesture Coordinator ( Xử lý logic gesture )
 
 class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
     let idx: Int
     weak var canvasModel: CanvasModel?
     
+    // state gesture
     weak var panGesture: UIPanGestureRecognizer?
     weak var pinchGesture: UIPinchGestureRecognizer?
     weak var rotateGesture: UIRotationGestureRecognizer?
     
-    // 2. State local
-    private var gestureState: GestureStateImage?
-    private var activeTouchCount = 0
+    // state gesture image
+    private var gestureStateImage: GestureStateImage?
     
-    // 3. init
+    // Quản lý các gesture đang active , sẽ chứa các gesture đang ở trạng thái .began hoặc .changed
+    private var activeGestures: Set<UIGestureRecognizer> = []
+    
+    // state update gesture
+    private var isUpdate = false
+    
+    // init
     init(idx: Int, canvasModel: CanvasModel) {
         self.idx = idx
         self.canvasModel = canvasModel
     }
     
-    // MARK: Logic gesture
+    // MARK: - Logic gesture
     
-    // 1. handle lúc ngón tay vừa chạm
-    private func handleTouchStart(_ gesture: UIGestureRecognizer) {
-        if activeTouchCount == 0 {
-            guard let photos = canvasModel?.projectDetail?.photos , idx >= 0 , idx < photos.count else { return }
+    // func state change gesture
+    private func handleGestureStateChange(_ gesture: UIGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            // khi ngón tay bắt đầu chạm
+            // kiểm tra xem trước đó Set có đang rỗng không (tức là chưa có ngón nào chạm)
+            // thêm gesture vừa bắt đầu vào Set các gesture đang hoạt động
+            activeGestures.insert(gesture)
             
-            let currentTransform = photos[idx].transform
+            // 1. nếu Set trước đó rỗng, nghĩa là đây là ngón tay đầu tiên chạm vào màn hình
+            if activeGestures.isEmpty {
+                startTouch()
+            }
             
-            gestureState = GestureStateImage(transform: currentTransform, focalPoint: currentTransform.center, isMultiTouch: false)
+            // update scale image
+            Update()
             
-            // block gesture canvas
-            canvasModel?.scrollView?.isScrollEnabled = false
-            canvasModel?.scrollView?.pinchGestureRecognizer?.isEnabled = false
+        case .changed:
+            Update()
             
+        case .ended, .cancelled, .failed:
+            // delete gesture này khỏi Set các gesture đang hoạt động
+            activeGestures.remove(gesture)
+            
+            // Kiểm tra xem Set đã rỗng chưa (tất cả ngón tay đã nhấc lên chưa)
+            if activeGestures.isEmpty {
+                Update()
+                endTouch()
+            } else {
+                // nếu vẫn còn ngón tay khác đang chạm, chỉ cập nhật image bình thường
+                Update()
+            }
+            
+        default:
+            break
         }
-        activeTouchCount += 1
     }
     
-    // 2. điểm giữa 2 ngón tay
-    private func handleMultiTouch(_ gesture: UIGestureRecognizer) {
-        guard let state = gestureState , !state.isMultiTouch else { return }
-        guard let cv = canvasModel?.canvasContentView,
-              let photos = canvasModel?.projectDetail?.photos , idx >= 0, idx < photos.count
-        else { return }
+    // ========================================== HANDLE TOUCH ===========================================
+    
+    // A. func gọi 1 lần khi bắt đầu chạm ngón đầu tiên
+    private func startTouch() {
+        // unwrap photos
+        guard let photos = canvasModel?.projectDetail?.photos, idx >= 0, idx < photos.count else { return }
         
-        // toạ độ giao điểm giữa 2 ngón tay
+        // lấy transform hiện tại của ảnh trước khi bị dịch chuyển
         let currentTransform = photos[idx].transform
-        let focalCanvas = gesture.location(in: cv)
         
-        
-        
-        // reset translation before để tính translation hiện tại tránh bị cộng dồn
-        panGesture?.setTranslation(CGPoint(x: 0, y: 0), in: cv)
-        pinchGesture?.scale = 1.0
-        rotateGesture?.rotation = 0.0
-        // update
-        gestureState = GestureStateImage(transform: currentTransform, focalPoint: focalCanvas, isMultiTouch: true)
-    }
-    
-    // 3. update
-    private func updateImagePosition(_ gesture: UIGestureRecognizer) {
-        guard let state = gestureState , let cv = canvasModel?.canvasContentView else { return }
-        
-        let panTranslation: CGPoint = {
-            guard let r = panGesture else { return .zero }
-            let t = r.translation(in: cv)
-            return CGPoint(x: t.x, y: t.y)
-        }()
-        
-        let scaleDelta: CGFloat = pinchGesture?.scale ?? 1.0
-        let angleDelta: Double = Double(rotateGesture?.rotation ?? 0.0)
-        
-        var newCenter = state.transform.center
-        
-        // check 2 finger rotate
-        if state.isMultiTouch {
-            let focalX = state.focalPoint.x
-            let focalY = state.focalPoint.y
-            
-            var transform = CGAffineTransform(translationX: focalX, y: focalY)
-            transform = transform.scaledBy(x: scaleDelta, y: scaleDelta)
-            transform = transform.rotated(by: CGFloat(angleDelta))
-            transform = transform.translatedBy(x: -focalX, y: -focalY)
-            
-            // Áp dụng lên center
-            newCenter = state.transform.center.applying(transform)
-            
-        }
-        
-        // + drag
-        newCenter.x += panTranslation.x
-        newCenter.y += panTranslation.y
-        
-        let newTransform = PhotoTransform(
-            center: newCenter,
-            scale: state.transform.scale * scaleDelta,
-            rotation: state.transform.rotation + angleDelta,
-            baseSize: state.transform.baseSize
+        // save state img chưa scale
+        gestureStateImage = GestureStateImage(
+            transform: currentTransform,
+            isMultiTouch: false
         )
         
-        // update canvasmodel
-        canvasModel?.updatePhotoTransform(index: idx, transform: newTransform)
+        // block gesture canvas
+        canvasModel?.scrollView?.isScrollEnabled = false
+        canvasModel?.scrollView?.pinchGestureRecognizer?.isEnabled = false
     }
     
-    // 4. handle finger drop
-    private func handleTouchEnd(_ gesture: UIGestureRecognizer) {
-        activeTouchCount = max(0 , activeTouchCount - 1)
+    // B. func gọi 1 lần khi ngón tay cuối cùng nhấc lên
+    private func endTouch() {
+        // unblock canvas
+        canvasModel?.scrollView?.isScrollEnabled = true
+        canvasModel?.scrollView?.pinchGestureRecognizer?.isEnabled = true
         
-        if activeTouchCount == 0 {
-            // unblock gesture canvas
-            canvasModel?.scrollView?.isScrollEnabled = true
-            canvasModel?.scrollView?.pinchGestureRecognizer?.isEnabled = true
-            // delete state
-            gestureState = nil
-            
+        // delete state
+        gestureStateImage = nil
+    }
+    
+    // C. update image
+    private func updateImagePosition() {
+        guard let cv = canvasModel?.canvasContentView else { return }
+        guard let photos = canvasModel?.projectDetail?.photos, idx >= 0, idx < photos.count else { return }
+        
+        // lấy transform hiện tại của ảnh trước khi thực hiện gesture
+        var currentTransform = photos[idx].transform
+        // state change
+        var hasChanges = false
+        
+        // 1. Drag
+        let isPanActive = panGesture?.isActive == true || panGesture?.state == .ended
+        if let pan = panGesture, isPanActive {
+            // value translation của ngón tay
+            let translation = pan.translation(in: cv)
+            if translation != .zero {
+                // Cộng dồn độ dịch chuyển vào tâm của ảnh
+                currentTransform.center.x += translation.x
+                currentTransform.center.y += translation.y
+                // reset tránh + dồn liên tục
+                pan.setTranslation(.zero, in: cv)
+                hasChanges = true // đánh dấu là có thay đổi
+            }
         }
-        else {
-            guard let photos = canvasModel?.projectDetail?.photos , idx >= 0 , idx < photos.count ,
-                  let cv = canvasModel?.canvasContentView
-            else { return }
+        
+        // 2. Zoom + Rotate
+        let isPinchActive = pinchGesture?.isActive == true || pinchGesture?.state == .ended
+        let isRotateActive = rotateGesture?.isActive == true || rotateGesture?.state == .ended
+        
+        let scale = isPinchActive ? (pinchGesture?.scale ?? 1.0) : 1.0
+        let rotation = isRotateActive ? (rotateGesture?.rotation ?? 0.0) : 0.0
+        
+        if scale != 1.0 || rotation != 0.0 {
+            // xác định tâm để zoom và xoay , mặc định tâm xoay là tâm của bức ảnh
+            var focalPoint = currentTransform.center
             
-            let currentStateImage = photos[idx].transform
+            // nhưng dùng đang dùng 2 ngón tay, xoay/zoom quanh center 2 ngón tay
+            if isPinchActive, let pinch = pinchGesture, pinch.numberOfTouches >= 2 {
+                focalPoint = pinch.location(in: cv)
+            } else if isRotateActive, let rotate = rotateGesture, rotate.numberOfTouches >= 2 {
+                focalPoint = rotate.location(in: cv)
+            } else if isPanActive, let pan = panGesture, pan.numberOfTouches >= 2 {
+                focalPoint = pan.location(in: cv)
+            }
+            
+            // dùng api CGAffineTransform để thực hiện tranform image
+            var transform = CGAffineTransform(translationX: focalPoint.x, y: focalPoint.y)
+            transform = transform.scaledBy(x: scale, y: scale)
+            transform = transform.rotated(by: rotation)
+            // reset về gốc toạ độ
+            transform = transform.translatedBy(x: -focalPoint.x, y: -focalPoint.y)
+            
+            // apply ma trận trên vào tâm hiện tại của bức ảnh để tìm ra tâm mới
+            currentTransform.center = currentTransform.center.applying(transform)
+            currentTransform.scale *= scale
+            currentTransform.rotation += Double(rotation)
+            
             // reset
-            panGesture?.setTranslation(.zero, in: cv)
             pinchGesture?.scale = 1.0
             rotateGesture?.rotation = 0.0
             
-            // check gesture pinch + rotate active?
-            let checkTouch = (pinchGesture?.isActive == true || rotateGesture?.isActive == true)
-            // update
-            gestureState = GestureStateImage(
-                transform: currentStateImage,
-                focalPoint: currentStateImage.center,
-                isMultiTouch: checkTouch
-            )
+            hasChanges = true // chek changes = true
+        }
+        
+        // update models
+        if hasChanges {
+            canvasModel?.updatePhotoTransform(index: idx, transform: currentTransform)
+        }
+    }
+    
+    // ===================================================================================================
+    
+    // D. gom event update tính toán 1 lần , tránh tính toán lặp đi lặp lại nhiều lần
+    private func Update() {
+        // check state update
+        if !isUpdate {
+            isUpdate = true
+            // Giúp cho hàm updateImagePosition chỉ bị gọi 1 lần duy nhất thay vì 3 lần nếu cả 3 gesture cùng thay đổi
             
-            // reset state class
-            if gesture === pinchGesture {
-                pinchGesture?.scale = 1.0
-            }
-            if gesture === rotateGesture {
-                rotateGesture?.rotation = 0.0
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.isUpdate = false // state false để có thể tiếp tục update
+                self.updateImagePosition()   // update
             }
         }
     }
     
-    // combine gesture
+    // E. cho phép nhiều thao tác gesture diễn ra 1 lúc
     func gestureRecognizer(
         _ gesture : UIGestureRecognizer,
         shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
     ) -> Bool {
+        // Chỉ cho phép đồng thời nếu delegate của gesture kia cũng là class coordinator này
         return otherGestureRecognizer.delegate === self
     }
     
+    // MARK: - GESTURE Actions
     
-    // MARK: GESTURE Actions
-    
-    // 1. Drag
     @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
-        if gesture.state == .began { // finger start
-            handleTouchStart(gesture)
-        }
-        else if gesture.state == .changed { // finger move
-            updateImagePosition(gesture)
-        }
-        else if gesture.state == .ended || gesture.state == .cancelled || gesture.state == .failed {
-            handleTouchEnd(gesture)
-        }
+        handleGestureStateChange(gesture)
     }
     
-    // 2. Zoom
     @objc func handlePinch(_ gesture: UIPinchGestureRecognizer) {
-        if gesture.state == .began {
-            handleTouchStart(gesture) // ngón tay vừa chạm tạo checkpoint active
-            handleMultiTouch(gesture)
-        }
-        else if gesture.state == .changed {
-            updateImagePosition(gesture)
-        }
-        else if gesture.state == .ended || gesture.state == .cancelled || gesture.state == .failed  {
-            handleTouchEnd(gesture)
-        }
+        handleGestureStateChange(gesture)
     }
     
-    // 3. Rotate
     @objc func handleRotate(_ gesture: UIRotationGestureRecognizer) {
-        if gesture.state == .began {
-            handleTouchStart(gesture)
-            
-            handleMultiTouch(gesture)
-        }
-        else if gesture.state == .changed {
-            updateImagePosition(gesture)
-        }
-        else if gesture.state == .ended || gesture.state == .cancelled || gesture.state == .failed {
-            handleTouchEnd(gesture)
-        }
+        handleGestureStateChange(gesture) 
     }
 }
 
-
+// MARK: - EXTENSION
 
 private extension UIGestureRecognizer {
     var isActive: Bool {
