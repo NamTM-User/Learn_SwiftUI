@@ -10,9 +10,22 @@
 		B9404BEA2FB168F50006E874 /* Test1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Test1.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B90C59E32FCFCE0C00A6E481 /* Exceptions for "Test1" folder in "Test1" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B9404BE92FB168F50006E874 /* Test1 */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B9404BEC2FB168F50006E874 /* Test1 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B90C59E32FCFCE0C00A6E481 /* Exceptions for "Test1" folder in "Test1" target */,
+			);
 			path = Test1;
 			sourceTree = "<group>";
 		};
@@ -254,6 +267,8 @@
 				DEVELOPMENT_TEAM = THRHR9X935;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Test1/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -288,6 +303,8 @@
 				DEVELOPMENT_TEAM = THRHR9X935;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Test1/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

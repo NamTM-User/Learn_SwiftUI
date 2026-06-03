@@ -47,14 +47,11 @@ struct PhotoSelectionOverlay: View {
         .allowsHitTesting(true)
     }
 
-    // Xoay offset (offsetX, offsetY) quanh tâm (centerX, centerY) theo angle (radians), trả về canvas point
+    
     private func calculateCanvasPoint(centerX: Double, centerY: Double, offsetX: Double, offsetY: Double, angle: Double) -> CGPoint {
-        let cosAngle = cos(angle)
-        let sinAngle = sin(angle)
-        return CGPoint(
-            x: centerX + offsetX * cosAngle - offsetY * sinAngle,
-            y: centerY + offsetX * sinAngle + offsetY * cosAngle
-        )
+        let transform = CGAffineTransform(translationX: centerX, y: centerY)
+            .rotated(by: angle)
+        return CGPoint(x: offsetX, y: offsetY).applying(transform)
     }
 }
 
