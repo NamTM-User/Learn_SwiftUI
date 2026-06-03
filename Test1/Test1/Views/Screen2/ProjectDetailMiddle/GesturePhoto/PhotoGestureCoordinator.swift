@@ -7,12 +7,6 @@ import Foundation
 import UIKit
 import SwiftUI
 
-struct GestureStateImage {
-    let transform: PhotoTransform
-    // state hiện tại là 1 ngón hay nhiều ngón
-    let isMultiTouch: Bool
-}
-
 // MARK: -  Gesture Coordinator ( Xử lý logic gesture )
 
 class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
@@ -23,9 +17,6 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
     weak var panGesture: UIPanGestureRecognizer?
     weak var pinchGesture: UIPinchGestureRecognizer?
     weak var rotateGesture: UIRotationGestureRecognizer?
-    
-    // state gesture image
-    private var gestureStateImage: GestureStateImage?
     
     // Quản lý các gesture đang active , sẽ chứa các gesture đang ở trạng thái .began hoặc .changed
     private var activeGestures: Set<UIGestureRecognizer> = []
@@ -56,10 +47,10 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
             }
             
             // update scale image
-            Update()
+            scheduleUpdate()
             
         case .changed:
-            Update()
+            scheduleUpdate()
             
         case .ended, .cancelled, .failed:
             // delete gesture này khỏi Set các gesture đang hoạt động
@@ -67,11 +58,11 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
             
             // Kiểm tra xem Set đã rỗng chưa (tất cả ngón tay đã nhấc lên chưa)
             if activeGestures.isEmpty {
-                Update()
+                scheduleUpdate()
                 endTouch()
             } else {
                 // nếu vẫn còn ngón tay khác đang chạm, chỉ cập nhật image bình thường
-                Update()
+                scheduleUpdate()
             }
             
         default:
@@ -86,15 +77,6 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
         // unwrap photos
         guard let photos = canvasModel?.projectDetail?.photos, idx >= 0, idx < photos.count else { return }
         
-        // lấy transform hiện tại của ảnh trước khi bị dịch chuyển
-        let currentTransform = photos[idx].transform
-        
-        // save state img chưa scale
-        gestureStateImage = GestureStateImage(
-            transform: currentTransform,
-            isMultiTouch: false
-        )
-        
         // block gesture canvas
         canvasModel?.scrollView?.isScrollEnabled = false
         canvasModel?.scrollView?.pinchGestureRecognizer?.isEnabled = false
@@ -105,9 +87,6 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
         // unblock canvas
         canvasModel?.scrollView?.isScrollEnabled = true
         canvasModel?.scrollView?.pinchGestureRecognizer?.isEnabled = true
-        
-        // delete state
-        gestureStateImage = nil
     }
     
     // C. update image
@@ -182,17 +161,15 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
     
     // ===================================================================================================
     
-    // D. gom event update tính toán 1 lần , tránh tính toán lặp đi lặp lại nhiều lần
-    private func Update() {
-        // check state update
+    // 2. Gom luồng tính toán Transform
+    private func scheduleUpdate() {
+        // Kiểm tra cờ isUpdate, nếu chưa có lệnh update nào được đặt thì mới chạy
         if !isUpdate {
             isUpdate = true
-            // Giúp cho hàm updateImagePosition chỉ bị gọi 1 lần duy nhất thay vì 3 lần nếu cả 3 gesture cùng thay đổi
-            
-            Task { @MainActor [weak self] in
+                DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.isUpdate = false // state false để có thể tiếp tục update
-                self.updateImagePosition()   // update
+                self.isUpdate = false
+                self.updateImagePosition()
             }
         }
     }

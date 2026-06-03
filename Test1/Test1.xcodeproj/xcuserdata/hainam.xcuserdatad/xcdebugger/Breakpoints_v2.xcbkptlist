@@ -36,33 +36,49 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "12844A4F-E88F-4A9D-B325-2E13E67F4CD0"
+            uuid = "F1F7DFB3-CDEB-4B88-A1D1-23D998F5E4FA"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Test1/Views/Screen2/ProjectDetailMiddle/ProjectDetailMiddle.swift"
+            filePath = "Test1/Models/Screen2/CanvasModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "14"
-            endingLineNumber = "14"
-            landmarkName = "body"
-            landmarkType = "24">
+            startingLineNumber = "185"
+            endingLineNumber = "185"
+            landmarkName = "saveChanges()"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "5F3B40DE-AA76-42AF-87F0-10BD48A81699"
+            uuid = "9CA54814-E9A4-4535-B7FA-0E14891DBD96"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Test1/Models/Screen2/CanvasModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "149"
+            endingLineNumber = "149"
+            landmarkName = "CanvasModel"
+            landmarkType = "3">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "41FF7BF7-698E-4E8E-8D6B-7A7278F12D71"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Test1/Views/Screen2/ProjectDetailMiddle/ProjectDetailMiddle.swift"
+            filePath = "Test1/Views/Screen2/ProjectDetailMiddle/GesturePhoto/PhotoGestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "14"
-            endingLineNumber = "14"
-            landmarkName = "body"
-            landmarkType = "24">
+            startingLineNumber = "92"
+            endingLineNumber = "92"
+            landmarkName = "PhotoGestureCoordinator"
+            landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
