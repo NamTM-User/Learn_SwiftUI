@@ -7,19 +7,6 @@
 
 import SwiftUI
 
-/*
- PhotoSelectionOverlay nằm trong overlayHosting.view (UIHostingController) —
- một UIView SIBLING của contentHosting.view bên trong containerView.
-
- - overlayHosting.view.clipsToBounds = false  → overlay vẽ ra ngoài canvas
- - containerView.clipsToBounds = false         → overlay không bị clip bởi container
- - Cả containerView đều zoom/scroll cùng lúc  → không cần coordinate conversion
- - Vị trí dùng canvas coordinates như bình thường, KHÔNG giật
-
- Reactive update:
- - Khi photo.transform thay đổi (gesture) → body re-render → vị trí cập nhật ✓
- - Khi scroll/zoom → UIKit di chuyển toàn bộ containerView → không cần re-render ✓
-*/
 
 struct PhotoSelectionOverlay: View {
     let photo: Photo
@@ -60,7 +47,6 @@ struct PhotoSelectionOverlay: View {
         .frame(width: CanvasSize.width, height: CanvasSize.height)
     }
 
-    /// Tính điểm trong canvas space sau khi áp dụng offset + rotation quanh center
     private func canvasPoint(center: CGPoint, dx: Double, dy: Double, angle: Double) -> CGPoint {
         let t = CGAffineTransform(translationX: center.x, y: center.y).rotated(by: angle)
         return CGPoint(x: dx, y: dy).applying(t)
@@ -100,7 +86,7 @@ struct SelectionBorderView: View {
             path.addLine(to: bottomLeft)
             path.closeSubpath()
         }
-        .stroke(Color.blue, style: StrokeStyle(lineWidth: 2.0 / max(zoomScale, 0.001)))
+        .stroke(Color.blue, style: StrokeStyle(lineWidth: 2.0 / max(zoomScale, 0.001))) // 
         .allowsHitTesting(false)
     }
 }

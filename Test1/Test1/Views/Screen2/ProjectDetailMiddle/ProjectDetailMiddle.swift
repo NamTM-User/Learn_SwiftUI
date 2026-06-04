@@ -35,18 +35,16 @@ struct ProjectDetailMiddle: View {
 }
 
 // MARK: - Canvas Layer View
-// Gộp cả 2 layer vào 1 UIHostingController duy nhất
-// SwiftUI xử lý hit-testing đúng trong cùng 1 hosting
 
 struct CanvasLayerView: View {
     var body: some View {
         ZStack {
-            // Layer 1: Photos + canvas background — clip bằng SwiftUI .clipped()
+            // Layer 1: Photos + canvas background
             PhotoContentLayer()
                 .frame(width: CanvasSize.width, height: CanvasSize.height)
                 .clipped()
 
-            // Layer 2: Selection overlay — KHÔNG clip, vẽ ra ngoài canvas được
+            // Layer 2: Selection overlay
             OverlayLayerView()
         }
         .frame(width: CanvasSize.width, height: CanvasSize.height)
