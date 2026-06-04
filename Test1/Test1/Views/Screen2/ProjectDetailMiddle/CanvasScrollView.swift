@@ -36,11 +36,11 @@ struct CanvasScrollView: UIViewRepresentable {
 
         // Căn giữa content khi zoom out
         func scrollViewDidZoom(_ scrollView: UIScrollView) {
-            centerContent(in: scrollView)
+            centerContent(scrollView)
             onZoom?(scrollView.zoomScale)
         }
 
-        func centerContent(in scrollView: UIScrollView) {
+        func centerContent(_ scrollView: UIScrollView) {
             guard let cv = contentView else { return }
             let boundsSize = scrollView.bounds.size
             let frame = cv.frame
@@ -53,10 +53,10 @@ struct CanvasScrollView: UIViewRepresentable {
         }
 
         // Chạy 1 lần sau khi layout hoàn tất
-        func initOnce(in scrollView: UIScrollView) {
+        func initOnce(_ scrollView: UIScrollView) {
             guard !didLoad else { return }
             didLoad = true
-            centerContent(in: scrollView)
+            centerContent(scrollView)
         }
     }
 
@@ -94,7 +94,7 @@ struct CanvasScrollView: UIViewRepresentable {
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
         context.coordinator.onZoom = onZoom
         DispatchQueue.main.async {
-            context.coordinator.initOnce(in: scrollView)
+            context.coordinator.initOnce(scrollView)
         }
     }
 }

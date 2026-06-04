@@ -6,30 +6,63 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B9C0D1D72FD15D7D00BDFAE0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B9C0D1D32FD15D7D00BDFAE0 /* Assets.xcassets */; };
+		B9C0D1D92FD15D7D00BDFAE0 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1AF2FD15D7D00BDFAE0 /* Project.swift */; };
+		B9C0D1DA2FD15D7D00BDFAE0 /* ProjectModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1B02FD15D7D00BDFAE0 /* ProjectModel.swift */; };
+		B9C0D1DB2FD15D7D00BDFAE0 /* CanvasModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1B22FD15D7D00BDFAE0 /* CanvasModel.swift */; };
+		B9C0D1DC2FD15D7D00BDFAE0 /* ProjectDetailModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1B32FD15D7D00BDFAE0 /* ProjectDetailModel.swift */; };
+		B9C0D1DD2FD15D7D00BDFAE0 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1B62FD15D7D00BDFAE0 /* APIService.swift */; };
+		B9C0D1DE2FD15D7D00BDFAE0 /* LocalFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1B72FD15D7D00BDFAE0 /* LocalFileManager.swift */; };
+		B9C0D1DF2FD15D7D00BDFAE0 /* PhotoLibrarySaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1B82FD15D7D00BDFAE0 /* PhotoLibrarySaver.swift */; };
+		B9C0D1E02FD15D7D00BDFAE0 /* PopupAddProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1BA2FD15D7D00BDFAE0 /* PopupAddProject.swift */; };
+		B9C0D1E12FD15D7D00BDFAE0 /* ProjectListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1BB2FD15D7D00BDFAE0 /* ProjectListView.swift */; };
+		B9C0D1E22FD15D7D00BDFAE0 /* ProjectSingle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1BC2FD15D7D00BDFAE0 /* ProjectSingle.swift */; };
+		B9C0D1E32FD15D7D00BDFAE0 /* ProjectDetailBottom.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1BE2FD15D7D00BDFAE0 /* ProjectDetailBottom.swift */; };
+		B9C0D1E42FD15D7D00BDFAE0 /* ProjectDetailHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1C02FD15D7D00BDFAE0 /* ProjectDetailHeader.swift */; };
+		B9C0D1E52FD15D7D00BDFAE0 /* PhotoGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1C22FD15D7D00BDFAE0 /* PhotoGesture.swift */; };
+		B9C0D1E62FD15D7D00BDFAE0 /* PhotoGestureCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1C32FD15D7D00BDFAE0 /* PhotoGestureCoordinator.swift */; };
+		B9C0D1E72FD15D7D00BDFAE0 /* CanvasScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1C52FD15D7D00BDFAE0 /* CanvasScrollView.swift */; };
+		B9C0D1E82FD15D7D00BDFAE0 /* PhotoItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1C62FD15D7D00BDFAE0 /* PhotoItemView.swift */; };
+		B9C0D1E92FD15D7D00BDFAE0 /* PhotoSelectionOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1C72FD15D7D00BDFAE0 /* PhotoSelectionOverlay.swift */; };
+		B9C0D1EA2FD15D7D00BDFAE0 /* ProjectDetailMiddle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1C82FD15D7D00BDFAE0 /* ProjectDetailMiddle.swift */; };
+		B9C0D1EB2FD15D7D00BDFAE0 /* Slider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1CB2FD15D7D00BDFAE0 /* Slider.swift */; };
+		B9C0D1EC2FD15D7D00BDFAE0 /* ShareLinkTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1CD2FD15D7D00BDFAE0 /* ShareLinkTest.swift */; };
+		B9C0D1ED2FD15D7D00BDFAE0 /* test.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1CE2FD15D7D00BDFAE0 /* test.swift */; };
+		B9C0D1EE2FD15D7D00BDFAE0 /* testt123.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1CF2FD15D7D00BDFAE0 /* testt123.swift */; };
+		B9C0D1EF2FD15D7D00BDFAE0 /* ProjectDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1D12FD15D7D00BDFAE0 /* ProjectDetailView.swift */; };
+		B9C0D1F02FD15D7D00BDFAE0 /* Test1App.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0D1D52FD15D7D00BDFAE0 /* Test1App.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		B9404BEA2FB168F50006E874 /* Test1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Test1.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9C0D1AF2FD15D7D00BDFAE0 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
+		B9C0D1B02FD15D7D00BDFAE0 /* ProjectModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectModel.swift; sourceTree = "<group>"; };
+		B9C0D1B22FD15D7D00BDFAE0 /* CanvasModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasModel.swift; sourceTree = "<group>"; };
+		B9C0D1B32FD15D7D00BDFAE0 /* ProjectDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDetailModel.swift; sourceTree = "<group>"; };
+		B9C0D1B62FD15D7D00BDFAE0 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		B9C0D1B72FD15D7D00BDFAE0 /* LocalFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFileManager.swift; sourceTree = "<group>"; };
+		B9C0D1B82FD15D7D00BDFAE0 /* PhotoLibrarySaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibrarySaver.swift; sourceTree = "<group>"; };
+		B9C0D1BA2FD15D7D00BDFAE0 /* PopupAddProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupAddProject.swift; sourceTree = "<group>"; };
+		B9C0D1BB2FD15D7D00BDFAE0 /* ProjectListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectListView.swift; sourceTree = "<group>"; };
+		B9C0D1BC2FD15D7D00BDFAE0 /* ProjectSingle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSingle.swift; sourceTree = "<group>"; };
+		B9C0D1BE2FD15D7D00BDFAE0 /* ProjectDetailBottom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDetailBottom.swift; sourceTree = "<group>"; };
+		B9C0D1C02FD15D7D00BDFAE0 /* ProjectDetailHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDetailHeader.swift; sourceTree = "<group>"; };
+		B9C0D1C22FD15D7D00BDFAE0 /* PhotoGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGesture.swift; sourceTree = "<group>"; };
+		B9C0D1C32FD15D7D00BDFAE0 /* PhotoGestureCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGestureCoordinator.swift; sourceTree = "<group>"; };
+		B9C0D1C52FD15D7D00BDFAE0 /* CanvasScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasScrollView.swift; sourceTree = "<group>"; };
+		B9C0D1C62FD15D7D00BDFAE0 /* PhotoItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoItemView.swift; sourceTree = "<group>"; };
+		B9C0D1C72FD15D7D00BDFAE0 /* PhotoSelectionOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSelectionOverlay.swift; sourceTree = "<group>"; };
+		B9C0D1C82FD15D7D00BDFAE0 /* ProjectDetailMiddle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDetailMiddle.swift; sourceTree = "<group>"; };
+		B9C0D1CB2FD15D7D00BDFAE0 /* Slider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Slider.swift; sourceTree = "<group>"; };
+		B9C0D1CD2FD15D7D00BDFAE0 /* ShareLinkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareLinkTest.swift; sourceTree = "<group>"; };
+		B9C0D1CE2FD15D7D00BDFAE0 /* test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = test.swift; sourceTree = "<group>"; };
+		B9C0D1CF2FD15D7D00BDFAE0 /* testt123.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = testt123.swift; sourceTree = "<group>"; };
+		B9C0D1D12FD15D7D00BDFAE0 /* ProjectDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectDetailView.swift; sourceTree = "<group>"; };
+		B9C0D1D32FD15D7D00BDFAE0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B9C0D1D42FD15D7D00BDFAE0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B9C0D1D52FD15D7D00BDFAE0 /* Test1App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Test1App.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		B90C59E32FCFCE0C00A6E481 /* Exceptions for "Test1" folder in "Test1" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = B9404BE92FB168F50006E874 /* Test1 */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		B9404BEC2FB168F50006E874 /* Test1 */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				B90C59E32FCFCE0C00A6E481 /* Exceptions for "Test1" folder in "Test1" target */,
-			);
-			path = Test1;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		B9404BE72FB168F50006E874 /* Frameworks */ = {
@@ -45,7 +78,7 @@
 		B9404BE12FB168F50006E874 = {
 			isa = PBXGroup;
 			children = (
-				B9404BEC2FB168F50006E874 /* Test1 */,
+				B9C0D1D62FD15D7D00BDFAE0 /* Test1 */,
 				B9404BEB2FB168F50006E874 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -56,6 +89,143 @@
 				B9404BEA2FB168F50006E874 /* Test1.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B9C0D1B12FD15D7D00BDFAE0 /* Screen1 */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1AF2FD15D7D00BDFAE0 /* Project.swift */,
+				B9C0D1B02FD15D7D00BDFAE0 /* ProjectModel.swift */,
+			);
+			path = Screen1;
+			sourceTree = "<group>";
+		};
+		B9C0D1B42FD15D7D00BDFAE0 /* Screen2 */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1B22FD15D7D00BDFAE0 /* CanvasModel.swift */,
+				B9C0D1B32FD15D7D00BDFAE0 /* ProjectDetailModel.swift */,
+			);
+			path = Screen2;
+			sourceTree = "<group>";
+		};
+		B9C0D1B52FD15D7D00BDFAE0 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1B12FD15D7D00BDFAE0 /* Screen1 */,
+				B9C0D1B42FD15D7D00BDFAE0 /* Screen2 */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		B9C0D1B92FD15D7D00BDFAE0 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1B62FD15D7D00BDFAE0 /* APIService.swift */,
+				B9C0D1B72FD15D7D00BDFAE0 /* LocalFileManager.swift */,
+				B9C0D1B82FD15D7D00BDFAE0 /* PhotoLibrarySaver.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		B9C0D1BD2FD15D7D00BDFAE0 /* Screen1 */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1BA2FD15D7D00BDFAE0 /* PopupAddProject.swift */,
+				B9C0D1BB2FD15D7D00BDFAE0 /* ProjectListView.swift */,
+				B9C0D1BC2FD15D7D00BDFAE0 /* ProjectSingle.swift */,
+			);
+			path = Screen1;
+			sourceTree = "<group>";
+		};
+		B9C0D1BF2FD15D7D00BDFAE0 /* ProjectDetailBottom */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1BE2FD15D7D00BDFAE0 /* ProjectDetailBottom.swift */,
+			);
+			path = ProjectDetailBottom;
+			sourceTree = "<group>";
+		};
+		B9C0D1C12FD15D7D00BDFAE0 /* ProjectDetailHeader */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1C02FD15D7D00BDFAE0 /* ProjectDetailHeader.swift */,
+			);
+			path = ProjectDetailHeader;
+			sourceTree = "<group>";
+		};
+		B9C0D1C42FD15D7D00BDFAE0 /* GesturePhoto */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1C22FD15D7D00BDFAE0 /* PhotoGesture.swift */,
+				B9C0D1C32FD15D7D00BDFAE0 /* PhotoGestureCoordinator.swift */,
+			);
+			path = GesturePhoto;
+			sourceTree = "<group>";
+		};
+		B9C0D1C92FD15D7D00BDFAE0 /* ProjectDetailMiddle */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1C42FD15D7D00BDFAE0 /* GesturePhoto */,
+				B9C0D1C52FD15D7D00BDFAE0 /* CanvasScrollView.swift */,
+				B9C0D1C62FD15D7D00BDFAE0 /* PhotoItemView.swift */,
+				B9C0D1C72FD15D7D00BDFAE0 /* PhotoSelectionOverlay.swift */,
+				B9C0D1C82FD15D7D00BDFAE0 /* ProjectDetailMiddle.swift */,
+			);
+			path = ProjectDetailMiddle;
+			sourceTree = "<group>";
+		};
+		B9C0D1CA2FD15D7D00BDFAE0 /* Screen2 */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1BF2FD15D7D00BDFAE0 /* ProjectDetailBottom */,
+				B9C0D1C92FD15D7D00BDFAE0 /* ProjectDetailMiddle */,
+				B9C0D1C12FD15D7D00BDFAE0 /* ProjectDetailHeader */,
+			);
+			path = Screen2;
+			sourceTree = "<group>";
+		};
+		B9C0D1CC2FD15D7D00BDFAE0 /* Screen3 */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1CB2FD15D7D00BDFAE0 /* Slider.swift */,
+			);
+			path = Screen3;
+			sourceTree = "<group>";
+		};
+		B9C0D1D02FD15D7D00BDFAE0 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1CD2FD15D7D00BDFAE0 /* ShareLinkTest.swift */,
+				B9C0D1CE2FD15D7D00BDFAE0 /* test.swift */,
+				B9C0D1CF2FD15D7D00BDFAE0 /* testt123.swift */,
+			);
+			path = test;
+			sourceTree = "<group>";
+		};
+		B9C0D1D22FD15D7D00BDFAE0 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1BD2FD15D7D00BDFAE0 /* Screen1 */,
+				B9C0D1CA2FD15D7D00BDFAE0 /* Screen2 */,
+				B9C0D1CC2FD15D7D00BDFAE0 /* Screen3 */,
+				B9C0D1D02FD15D7D00BDFAE0 /* test */,
+				B9C0D1D12FD15D7D00BDFAE0 /* ProjectDetailView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B9C0D1D62FD15D7D00BDFAE0 /* Test1 */ = {
+			isa = PBXGroup;
+			children = (
+				B9C0D1B52FD15D7D00BDFAE0 /* Models */,
+				B9C0D1B92FD15D7D00BDFAE0 /* Services */,
+				B9C0D1D22FD15D7D00BDFAE0 /* Views */,
+				B9C0D1D32FD15D7D00BDFAE0 /* Assets.xcassets */,
+				B9C0D1D42FD15D7D00BDFAE0 /* Info.plist */,
+				B9C0D1D52FD15D7D00BDFAE0 /* Test1App.swift */,
+			);
+			path = Test1;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -72,9 +242,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				B9404BEC2FB168F50006E874 /* Test1 */,
 			);
 			name = Test1;
 			packageProductDependencies = (
@@ -122,6 +289,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9C0D1D72FD15D7D00BDFAE0 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -132,6 +300,30 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9C0D1D92FD15D7D00BDFAE0 /* Project.swift in Sources */,
+				B9C0D1DA2FD15D7D00BDFAE0 /* ProjectModel.swift in Sources */,
+				B9C0D1DB2FD15D7D00BDFAE0 /* CanvasModel.swift in Sources */,
+				B9C0D1DC2FD15D7D00BDFAE0 /* ProjectDetailModel.swift in Sources */,
+				B9C0D1DD2FD15D7D00BDFAE0 /* APIService.swift in Sources */,
+				B9C0D1DE2FD15D7D00BDFAE0 /* LocalFileManager.swift in Sources */,
+				B9C0D1DF2FD15D7D00BDFAE0 /* PhotoLibrarySaver.swift in Sources */,
+				B9C0D1E02FD15D7D00BDFAE0 /* PopupAddProject.swift in Sources */,
+				B9C0D1E12FD15D7D00BDFAE0 /* ProjectListView.swift in Sources */,
+				B9C0D1E22FD15D7D00BDFAE0 /* ProjectSingle.swift in Sources */,
+				B9C0D1E32FD15D7D00BDFAE0 /* ProjectDetailBottom.swift in Sources */,
+				B9C0D1E42FD15D7D00BDFAE0 /* ProjectDetailHeader.swift in Sources */,
+				B9C0D1E52FD15D7D00BDFAE0 /* PhotoGesture.swift in Sources */,
+				B9C0D1E62FD15D7D00BDFAE0 /* PhotoGestureCoordinator.swift in Sources */,
+				B9C0D1E72FD15D7D00BDFAE0 /* CanvasScrollView.swift in Sources */,
+				B9C0D1E82FD15D7D00BDFAE0 /* PhotoItemView.swift in Sources */,
+				B9C0D1E92FD15D7D00BDFAE0 /* PhotoSelectionOverlay.swift in Sources */,
+				B9C0D1EA2FD15D7D00BDFAE0 /* ProjectDetailMiddle.swift in Sources */,
+				B9C0D1EB2FD15D7D00BDFAE0 /* Slider.swift in Sources */,
+				B9C0D1EC2FD15D7D00BDFAE0 /* ShareLinkTest.swift in Sources */,
+				B9C0D1ED2FD15D7D00BDFAE0 /* test.swift in Sources */,
+				B9C0D1EE2FD15D7D00BDFAE0 /* testt123.swift in Sources */,
+				B9C0D1EF2FD15D7D00BDFAE0 /* ProjectDetailView.swift in Sources */,
+				B9C0D1F02FD15D7D00BDFAE0 /* Test1App.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

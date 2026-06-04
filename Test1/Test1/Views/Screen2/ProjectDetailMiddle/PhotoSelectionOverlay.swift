@@ -23,7 +23,9 @@ struct PhotoSelectionOverlay: View {
         let topRight    = canvasPoint(center: transform.center, dx:  halfWidth, dy: -halfHeight, angle: transform.rotation)
         let bottomLeft  = canvasPoint(center: transform.center, dx: -halfWidth, dy:  halfHeight, angle: transform.rotation)
         let bottomRight = canvasPoint(center: transform.center, dx:  halfWidth, dy:  halfHeight, angle: transform.rotation)
-        let deletePos   = canvasPoint(center: transform.center, dx: 0,          dy: -halfHeight - 30, angle: transform.rotation)
+        
+        let dynamicGap  = 30.0 / max(zoomScale, 0.001)
+        let deletePos   = canvasPoint(center: transform.center, dx: 0,          dy: -halfHeight - dynamicGap, angle: transform.rotation)
 
         ZStack {
             SelectionBorderView(
@@ -86,7 +88,7 @@ struct SelectionBorderView: View {
             path.addLine(to: bottomLeft)
             path.closeSubpath()
         }
-        .stroke(Color.blue, style: StrokeStyle(lineWidth: 2.0 / max(zoomScale, 0.001))) // 
+        .stroke(Color.blue, style: StrokeStyle(lineWidth: 2.0 / max(zoomScale, 0.001))) 
         .allowsHitTesting(false)
     }
 }

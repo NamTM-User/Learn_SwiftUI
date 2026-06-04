@@ -59,10 +59,10 @@
             filePath = "Test1/Views/Screen2/ProjectDetailMiddle/GesturePhoto/PhotoGestureCoordinator.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "92"
-            endingLineNumber = "92"
-            landmarkName = "PhotoGestureCoordinator"
-            landmarkType = "3">
+            startingLineNumber = "100"
+            endingLineNumber = "100"
+            landmarkName = "updateImagePosition()"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

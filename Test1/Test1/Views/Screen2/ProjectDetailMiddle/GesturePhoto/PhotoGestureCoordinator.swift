@@ -9,14 +9,14 @@ import SwiftUI
 
 // MARK: -  Gesture Coordinator ( Xử lý logic gesture )
 
-class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
-    let idx: Int
+class PhotoGestureCoordinator: UIView, UIGestureRecognizerDelegate {
+    var idx: Int = 0
     weak var canvasModel: CanvasModel?
     
     // state gesture
-    weak var panGesture: UIPanGestureRecognizer?
-    weak var pinchGesture: UIPinchGestureRecognizer?
-    weak var rotateGesture: UIRotationGestureRecognizer?
+    let panGesture = UIPanGestureRecognizer()
+    let pinchGesture = UIPinchGestureRecognizer()
+    let rotateGesture = UIRotationGestureRecognizer()
     
     // quản lý các gesture đang active , sẽ chứa các gesture đang ở trạng thái .began hoặc .changed
     private var activeGestures: Set<UIGestureRecognizer> = []
@@ -25,9 +25,17 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
     private var isUpdate = false
     
     // init
-    init(idx: Int, canvasModel: CanvasModel) {
+    func set(idx: Int, canvasModel: CanvasModel) {
         self.idx = idx
         self.canvasModel = canvasModel
+        
+        for g in [panGesture, pinchGesture, rotateGesture] {
+            addGestureRecognizer(g)
+            g.delegate = self
+        }
+        panGesture.addTarget(self, action: #selector(handlePan(_:)))
+        pinchGesture.addTarget(self, action: #selector(handlePinch(_:)))
+        rotateGesture.addTarget(self, action: #selector(handleRotate(_:)))
     }
     
     // MARK: - Logic gesture
@@ -100,38 +108,38 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
         var hasChanges = false
         
         // 1. Drag
-        let isPanActive = panGesture?.isActive == true || panGesture?.state == .ended
-        if let pan = panGesture, isPanActive {
+        let isPanActive = panGesture.isActive == true || panGesture.state == .ended
+        if isPanActive {
             // value translation của ngón tay
-            let translation = pan.translation(in: cv)
+            let translation = panGesture.translation(in: cv)
             if translation != .zero {
                 // Cộng dồn độ dịch chuyển vào tâm của ảnh
                 currentTransform.center.x += translation.x
                 currentTransform.center.y += translation.y
                 // reset tránh + dồn liên tục
-                pan.setTranslation(.zero, in: cv)
+                panGesture.setTranslation(.zero, in: cv)
                 hasChanges = true // đánh dấu là có thay đổi
             }
         }
         
         // 2. Zoom + Rotate
-        let isPinchActive = pinchGesture?.isActive == true || pinchGesture?.state == .ended
-        let isRotateActive = rotateGesture?.isActive == true || rotateGesture?.state == .ended
+        let isPinchActive = pinchGesture.isActive == true || pinchGesture.state == .ended
+        let isRotateActive = rotateGesture.isActive == true || rotateGesture.state == .ended
         
-        let scale = isPinchActive ? (pinchGesture?.scale ?? 1.0) : 1.0
-        let rotation = isRotateActive ? (rotateGesture?.rotation ?? 0.0) : 0.0
+        let scale = isPinchActive ? pinchGesture.scale : 1.0
+        let rotation = isRotateActive ? rotateGesture.rotation : 0.0
         
         if scale != 1.0 || rotation != 0.0 {
             // xác định tâm để zoom và xoay , mặc định tâm xoay là tâm của bức ảnh
             var focalPoint = currentTransform.center
             
             // nhưng dùng đang dùng 2 ngón tay, xoay/zoom quanh center 2 ngón tay
-            if isPinchActive, let pinch = pinchGesture, pinch.numberOfTouches >= 2 {
-                focalPoint = pinch.location(in: cv)
-            } else if isRotateActive, let rotate = rotateGesture, rotate.numberOfTouches >= 2 {
-                focalPoint = rotate.location(in: cv)
-            } else if isPanActive, let pan = panGesture, pan.numberOfTouches >= 2 {
-                focalPoint = pan.location(in: cv)
+            if isPinchActive, pinchGesture.numberOfTouches >= 2 {
+                focalPoint = pinchGesture.location(in: cv)
+            } else if isRotateActive, rotateGesture.numberOfTouches >= 2 {
+                focalPoint = rotateGesture.location(in: cv)
+            } else if isPanActive, panGesture.numberOfTouches >= 2 {
+                focalPoint = panGesture.location(in: cv)
             }
             
             // dùng api CGAffineTransform để thực hiện tranform image
@@ -147,8 +155,8 @@ class PhotoGestureCoordinator: NSObject, UIGestureRecognizerDelegate {
             currentTransform.rotation += Double(rotation)
             
             // reset
-            pinchGesture?.scale = 1.0
-            rotateGesture?.rotation = 0.0
+            pinchGesture.scale = 1.0
+            rotateGesture.rotation = 0.0
             
             hasChanges = true // checkk changes = true
         }

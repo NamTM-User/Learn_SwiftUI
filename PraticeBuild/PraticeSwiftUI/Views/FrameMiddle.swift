@@ -23,9 +23,8 @@ struct Slider: View {
             let currentX = w * sliderRatio.x
             let currentY = h * sliderRatio.y
 
-            // Chiều cao 2 thanh dọc co giãn theo vị trí Y
+            // Chiều cao thanh dọc
             let topH = max(0, currentY - sliderHeight / 2 - spacing)
-            let botH = max(0, h - currentY - sliderHeight / 2 - spacing)
 
             VStack(spacing: spacing) {
                 // Thanh line trên
@@ -39,10 +38,10 @@ struct Slider: View {
                     .frame(width: sliderWidth, height: sliderHeight)
                     .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
 
-                // Thanh line dưới
+                // Thanh line dưới 
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color(hex: "8563FF"))
-                    .frame(width: 2, height: botH)
+                    .frame(width: 2, height: max(0, h - topH - sliderHeight - 2 * spacing))
             }
             .position(x: currentX, y: h / 2)
             .gesture(
