@@ -10,7 +10,7 @@ import SwiftUI
 import UIKit
 
 // set default size canvas
-let CanvasSize = CGSize(width: 500, height: 500)
+let CanvasSize = CGSize(width: 3000, height: 3000)
 
 @Observable
 class CanvasModel {
@@ -26,6 +26,7 @@ class CanvasModel {
     // @ObservationIgnored để tránh trigger re-render khi set
     @ObservationIgnored weak var scrollView: UIScrollView?
     @ObservationIgnored weak var canvasContentView: UIView?
+    @ObservationIgnored weak var overlayView: OverlayUIView?
 
     // Lưu lại zoom scale hiện tại để bù trừ kích thước cho overlay
     var cameraZoom: CGFloat = 1.0
@@ -149,13 +150,6 @@ class CanvasModel {
         projectDetail?.photos.append(newPhoto)
     }
 
-    // MARK: - Transform Update
-
-    func updatePhotoTransform(index: Int, transform: PhotoTransform) {
-        guard let photos = projectDetail?.photos, index >= 0, index < photos.count else { return }
-        projectDetail?.photos[index].transform = transform
-    }
-
     // MARK: - Delete Photo
 
     func deletePhoto() {
@@ -234,17 +228,9 @@ class CanvasModel {
             }
         }
     }
-
-    // MARK: - Opacity
-
-    func updateOpacity(index: Int, opacity: Double) {
-        guard let photos = projectDetail?.photos,
-              index >= 0, index < photos.count else { return }
-        projectDetail?.photos[index].opacity = opacity
-    }
     
     
-    // MARK: Camera Focus
+    // MARK: - Camera Focus
     
     func focusCamera() {
         /*
@@ -299,12 +285,13 @@ class CanvasModel {
             let maxOffsetY = max(0 , min(offsetY , cv.frame.height - sv.bounds.height))
             
             // set camera
-            sv.setContentOffset(CGPoint(x:maxOffsetX , y: maxOffsetY), animated: true)
+            sv.setContentOffset(CGPoint(x:maxOffsetX , y: maxOffsetY), animated: false)
         }
         else {
+            // Không có ảnh → di chuyển camera về trung tâm canvas
             let offsetX = (cv.frame.width - sv.bounds.width) / 2
             let offsetY = (cv.frame.height - sv.bounds.height) / 2
-            sv.setContentOffset(CGPoint(x: offsetX, y: offsetY), animated: true) // move về center CANVAS
+            sv.setContentOffset(CGPoint(x: offsetX, y: offsetY), animated: false)
         }
     }
 }
