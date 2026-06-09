@@ -60,7 +60,7 @@ struct Slider: View {
                             // Tính ngược lại ra % opacity mới 
                             let newValue = maxDrag / dragX
                             
-                            canvasModel.updateOpacity(index: selectedIdx, opacity: newValue)
+                            canvasModel.projectDetail?.photos[selectedIdx].opacity = newValue
                     }
                 )
             }

@@ -13,41 +13,37 @@ struct ProjectDetailMiddle: View {
 
     var body: some View {
         GeometryReader { geo in
-            CanvasScrollView(
-                size: geo.size,
-                onSetup: { sv, cv in
-                    canvasModel.scrollView        = sv
-                    canvasModel.canvasContentView = cv
-                    Task { @MainActor in
-                        canvasModel.focusCamera()
-                    }
-                },
-                onZoom: { zoomScale in
-                    canvasModel.cameraZoom = zoomScale
-                },
-                viewSwiftUI: AnyView(
-                    CanvasLayerView()
-                        .environment(canvasModel)
+            ZStack {
+                // 1. MARK: - Canvas ScrollView
+                CanvasScrollView(
+                    size: geo.size,
+                    onSetup: { sv, cv in
+                        canvasModel.scrollView        = sv
+                        canvasModel.canvasContentView = cv
+                    },
+                    onZoom: {
+                        canvasModel.overlayView?.updatePosition(model: canvasModel)
+                    },
+                    onScroll: {
+                        canvasModel.overlayView?.updatePosition(model: canvasModel)
+                    },
+                    viewSwiftUI: AnyView(
+                        PhotoContentLayer()
+                            .frame(width: CanvasSize.width, height: CanvasSize.height)
+                            .clipped() // edit
+                            .environment(canvasModel)
+                    )
                 )
-            )
+                
+                // 2. MARK: - OverlayUIView
+                OverlayPhotoSeclection(canvasModel: canvasModel)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .clipped() 
+            .onChange(of: geo.size) {
+                canvasModel.overlayView?.updatePosition(model: canvasModel)
+            }
         }
-    }
-}
-
-// MARK: - Canvas Layer View
-
-struct CanvasLayerView: View {
-    var body: some View {
-        ZStack {
-            // Layer 1: Photos + canvas background
-            PhotoContentLayer()
-                .frame(width: CanvasSize.width, height: CanvasSize.height)
-                .clipped()
-
-            // Layer 2: Selection overlay
-            OverlayLayerView()
-        }
-        .frame(width: CanvasSize.width, height: CanvasSize.height)
     }
 }
 
@@ -70,7 +66,6 @@ struct PhotoContentLayer: View {
                     let isSelected = canvasModel.selectedPhotoIndex == index
                     PhotoItemView(
                         photo: photo,
-                        index: index,
                         isSelect: isSelected,
                         onTap: {
                             if canvasModel.selectedPhotoIndex != index {
@@ -80,27 +75,6 @@ struct PhotoContentLayer: View {
                     )
                     .zIndex(isSelected ? 1 : 0)
                 }
-            }
-        }
-    }
-}
-
-// MARK: - Overlay Layer 
-
-struct OverlayLayerView: View {
-    @Environment(CanvasModel.self) private var canvasModel
-
-    var body: some View {
-        Group {
-            if let idx = canvasModel.selectedPhotoIndex,
-               let detail = canvasModel.projectDetail,
-               idx >= 0, idx < detail.photos.count {
-                PhotoSelectionOverlay(
-                    photo: detail.photos[idx],
-                    zoomScale: canvasModel.cameraZoom,
-                    onDelete: { canvasModel.deletePhoto() }
-                )
-                .zIndex(2)
             }
         }
     }

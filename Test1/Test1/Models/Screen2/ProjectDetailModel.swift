@@ -8,10 +8,12 @@
 import Foundation
 import CoreGraphics
 
+// không cần chuyển thành class vì không thao tác id trực tiếp ở đây ( thao tác ở class Photo rồi ) , để struct sẽ tốt hơn
 struct ProjectDetail: Codable {
-    let name: String
-    let id: Int
+    var name: String
+    var id: Int
     var photos: [Photo]
+
 }
 
 // MARK: - Frame
@@ -23,7 +25,8 @@ struct Frame: Codable {
 }
 
 // MARK: - Photo
-struct Photo: Codable, Identifiable {
+@Observable
+class Photo: Codable, Identifiable {
     var id: UUID = UUID()
     var url: String
     var opacity: Double = 1.0
@@ -80,8 +83,8 @@ struct Photo: Codable, Identifiable {
         )
     }
     
-    // decoder JSON from server
-    init(from decoder: any Decoder) throws {
+    // decoder JSON from server -> IMAGE
+    required init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         // các field thiếu từ server
@@ -94,8 +97,19 @@ struct Photo: Codable, Identifiable {
         self.frame = try container.decode(Frame.self, forKey: .frame)
     }
     
-    
-    
+    // encoder image -> JSON (func encode require protocol Encodable)
+    func encode(to e: any Encoder) throws {
+        // container key-value JSON
+        var container = e.container(keyedBy: CodingKeys.self)
+        
+        // write key-value -> container
+        try container.encode(id, forKey: .id)
+        try container.encode(url, forKey: .url)
+        try container.encode(opacity, forKey: .opacity)
+        try container.encode(frame, forKey: .frame)
+        try container.encode(rotation, forKey: .rotation)
+        
+    }
     
 }
 

@@ -11,7 +11,6 @@ struct PhotoItemView: View {
     @Environment(CanvasModel.self) private var canvasModel
 
     let photo: Photo
-    let index: Int
     let isSelect: Bool
     let onTap: () -> Void
 
@@ -45,7 +44,7 @@ struct PhotoItemView: View {
         .overlay(
             // Gesture overlay cùng frame với ảnh -> nhận cùng scaleEffect + rotationEffect + position
             PhotoGesture(
-                idx: index,
+                photo: photo,
                 isSelected: isSelect,
                 canvasModel: canvasModel
             )

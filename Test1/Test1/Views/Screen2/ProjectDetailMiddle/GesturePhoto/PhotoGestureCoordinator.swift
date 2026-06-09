@@ -10,7 +10,7 @@ import SwiftUI
 // MARK: -  Gesture Coordinator ( Xử lý logic gesture )
 
 class PhotoGestureCoordinator: UIView, UIGestureRecognizerDelegate {
-    var idx: Int = 0
+    var photo: Photo?
     weak var canvasModel: CanvasModel?
     
     // state gesture
@@ -25,8 +25,8 @@ class PhotoGestureCoordinator: UIView, UIGestureRecognizerDelegate {
     private var isUpdate = false
     
     // init
-    func set(idx: Int, canvasModel: CanvasModel) {
-        self.idx = idx
+    func set(photo: Photo, canvasModel: CanvasModel) {
+        self.photo = photo
         self.canvasModel = canvasModel
         
         for g in [panGesture, pinchGesture, rotateGesture] {
@@ -36,8 +36,6 @@ class PhotoGestureCoordinator: UIView, UIGestureRecognizerDelegate {
         panGesture.addTarget(self, action: #selector(handlePan(_:)))
         pinchGesture.addTarget(self, action: #selector(handlePinch(_:)))
         rotateGesture.addTarget(self, action: #selector(handleRotate(_:)))
-        
-        let resultPoint = convert(CGPoint(x: bounds.width, y: bounds.height), to: UIView())
     }
     
     // MARK: - Logic gesture
@@ -84,8 +82,8 @@ class PhotoGestureCoordinator: UIView, UIGestureRecognizerDelegate {
     
     // A. func gọi 1 lần khi bắt đầu chạm ngón đầu tiên
     private func startTouch() {
-        // unwrap photos
-        guard let photos = canvasModel?.projectDetail?.photos, idx >= 0, idx < photos.count else { return }
+        // unwrap photo
+        guard photo != nil else { return }
         
         // block gesture canvas
         canvasModel?.scrollView?.isScrollEnabled = false
@@ -102,10 +100,10 @@ class PhotoGestureCoordinator: UIView, UIGestureRecognizerDelegate {
     // C. update image
     private func updateImagePosition() {
         guard let cv = canvasModel?.canvasContentView else { return }
-        guard let photos = canvasModel?.projectDetail?.photos, idx >= 0, idx < photos.count else { return }
+        guard let currentPhoto = photo else { return }
         
         // lấy transform hiện tại của ảnh trước khi thực hiện gesture
-        var currentTransform = photos[idx].transform
+        var currentTransform = currentPhoto.transform
         // state change
         var hasChanges = false
         
@@ -163,9 +161,9 @@ class PhotoGestureCoordinator: UIView, UIGestureRecognizerDelegate {
             hasChanges = true // checkk changes = true
         }
         
-        // update models
+        // update model
         if hasChanges {
-            canvasModel?.updatePhotoTransform(index: idx, transform: currentTransform)
+            currentPhoto.transform = currentTransform
         }
     }
     
@@ -203,7 +201,7 @@ class PhotoGestureCoordinator: UIView, UIGestureRecognizerDelegate {
     }
     
     @objc func handleRotate(_ gesture: UIRotationGestureRecognizer) {
-        handleGestureStateChange(gesture) 
+        handleGestureStateChange(gesture)
     }
 }
 

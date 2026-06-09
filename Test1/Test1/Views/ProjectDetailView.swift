@@ -59,6 +59,8 @@ struct ProjectDetailView: View {
         .task {
             do {
                 try await canvasModel.fetchData(projectID)
+                try await Task.sleep(for: .milliseconds(50))
+                canvasModel.focusCamera()
             } catch {
                 print("fetchData error: \(error)")
             }

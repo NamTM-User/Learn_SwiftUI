@@ -20,7 +20,8 @@ import SwiftUI
 struct CanvasScrollView: UIViewRepresentable {
     var size: CGSize
     var onSetup: (UIScrollView, UIView) -> Void
-    var onZoom: (CGFloat) -> Void
+    var onZoom: (() -> Void)?
+    var onScroll: (() -> Void)?
     let viewSwiftUI: AnyView
 
     // MARK: - Coordinator
@@ -28,7 +29,8 @@ struct CanvasScrollView: UIViewRepresentable {
     class Coordinator: NSObject, UIScrollViewDelegate {
         var contentView: UIView?
         var didLoad = false
-        var onZoom: ((CGFloat) -> Void)?
+        var onZoom: (() -> Void)?
+        var onScroll: (() -> Void)?
 
         func viewForZooming(in scrollView: UIScrollView) -> UIView? {
             return contentView
@@ -37,7 +39,11 @@ struct CanvasScrollView: UIViewRepresentable {
         // Căn giữa content khi zoom out
         func scrollViewDidZoom(_ scrollView: UIScrollView) {
             centerContent(scrollView)
-            onZoom?(scrollView.zoomScale)
+            onZoom?()
+        }
+
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            onScroll?()
         }
 
         func centerContent(_ scrollView: UIScrollView) {
@@ -66,6 +72,7 @@ struct CanvasScrollView: UIViewRepresentable {
     func makeUIView(context: Context) -> UIScrollView {
         let scrollView = UIScrollView()
         context.coordinator.onZoom = onZoom
+        context.coordinator.onScroll = onScroll
         scrollView.delegate = context.coordinator
 
         scrollView.showsVerticalScrollIndicator   = false
@@ -93,9 +100,9 @@ struct CanvasScrollView: UIViewRepresentable {
     // B. Update khi SwiftUI state đổi
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
         context.coordinator.onZoom = onZoom
+        context.coordinator.onScroll = onScroll
         DispatchQueue.main.async {
             context.coordinator.initOnce(scrollView)
         }
     }
 }
-

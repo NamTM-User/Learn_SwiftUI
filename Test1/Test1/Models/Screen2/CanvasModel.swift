@@ -28,9 +28,6 @@ class CanvasModel {
     @ObservationIgnored weak var canvasContentView: UIView?
     @ObservationIgnored weak var overlayView: OverlayUIView?
 
-    // Lưu lại zoom scale hiện tại để bù trừ kích thước cho overlay
-    var cameraZoom: CGFloat = 1.0
-
     // api
     private let apiService = APIService()
 
@@ -149,7 +146,7 @@ class CanvasModel {
         )
         projectDetail?.photos.append(newPhoto)
     }
-
+    
     // MARK: - Delete Photo
 
     func deletePhoto() {
